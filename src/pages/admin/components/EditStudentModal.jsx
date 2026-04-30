@@ -66,9 +66,9 @@ const EditStudentModal = ({ isOpen, onClose, onSave, studentData, isSaving }) =>
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-lg flex flex-col max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
         >
-          <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+          <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <User className="w-5 h-5 text-brand-blue" />
               Edit Student Profile
@@ -78,7 +78,7 @@ const EditStudentModal = ({ isOpen, onClose, onSave, studentData, isSaving }) =>
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="sm:col-span-2">
                 <label className={labelClasses}>Full Name</label>
