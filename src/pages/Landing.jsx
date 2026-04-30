@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { GraduationCap, UserCircle } from 'lucide-react';
+import { GraduationCap, UserCircle, School } from 'lucide-react';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -65,7 +65,7 @@ const Landing = () => {
             className="group relative flex-1 flex flex-col items-center p-8 bg-white rounded-[2rem] hover:-translate-y-2 hover:shadow-2xl hover:shadow-brand-blue/30 transition-all duration-300 overflow-hidden border border-transparent"
           >
             <div className="bg-brand-blue/10 p-4 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
-              <UserCircle className="w-10 h-10 text-brand-blue" />
+              <School className="w-10 h-10 text-brand-blue" />
             </div>
             <h2 className="text-xl font-extrabold text-gray-900 mb-2">Admin Portal</h2>
             <p className="text-gray-600 text-sm text-center font-medium">Manage students, achievements, and performances.</p>

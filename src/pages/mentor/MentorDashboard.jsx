@@ -282,7 +282,14 @@ const MentorDashboard = () => {
         {tabs.map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => {
+              if (activeTab === tab.id) {
+                setAcademicMentee(null);
+                setSpiritualMentee(null);
+              } else {
+                setActiveTab(tab.id);
+              }
+            }}
             className={cn(
               "flex flex-col items-center justify-center gap-1 flex-1 py-1 transition-all rounded-lg",
               activeTab === tab.id ? "bg-blue-800/40 text-white" : "text-blue-300/50"
@@ -292,13 +299,6 @@ const MentorDashboard = () => {
             <span className="text-[8px] font-bold uppercase tracking-tight">{tab.label.split(' ')[0]}</span>
           </button>
         ))}
-        <button
-          onClick={handleLogout}
-          className="flex flex-col items-center justify-center gap-1 flex-1 py-1 text-red-400/80"
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="text-[8px] font-bold uppercase tracking-tight">Exit</span>
-        </button>
       </nav>
 
       {/* Desktop Sidebar */}
@@ -358,6 +358,13 @@ const MentorDashboard = () => {
         {/* Top Navbar */}
         <header className="h-16 bg-amber-50 border-b border-amber-100 sticky top-0 z-20 px-4 sm:px-8 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-4">
+             <button 
+               onClick={handleLogout}
+               className="md:hidden flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg border border-red-100 shadow-sm font-bold text-[10px] active:scale-95 transition-all"
+             >
+               <LogOut className="w-3.5 h-3.5" />
+               <span>Log out</span>
+             </button>
              <div className="hidden sm:block">
                 <h2 className="text-sm font-bold text-black">Hi, {getNickname(mentorProfile.name)}</h2>
                 <p className="text-xs text-gray-500 font-medium">{mentorProfile.caption}</p>
@@ -379,10 +386,6 @@ const MentorDashboard = () => {
             >
               <KeyRound className="w-3.5 h-3.5 text-amber-600" />
               <span>Change Password</span>
-            </button>
-            <button className="relative text-amber-400 hover:text-amber-600 transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-brand-lightBlue rounded-full border-2 border-amber-50"></span>
             </button>
             <div className="w-8 h-8 rounded-full bg-white border border-amber-200 flex items-center justify-center overflow-hidden">
                {mentorProfile.photoURL ? <img src={mentorProfile.photoURL} alt="" className="w-full h-full object-cover" /> : <UserCircle className="w-5 h-5 text-amber-200" />}
@@ -465,34 +468,34 @@ const MentorDashboard = () => {
                       <h3 className="text-xl font-black text-violet-900">{campusShare}%</h3>
                     </div>
 
-                    <div className="bg-emerald-50/60 p-5 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md hover:bg-emerald-50 transition-all group">
+                    <div className="bg-blue-50/60 p-5 rounded-2xl border border-blue-100 shadow-sm hover:shadow-md hover:bg-blue-50 transition-all group">
                       <div className="flex justify-between items-start mb-4">
-                        <p className="text-[10px] font-bold text-emerald-600/80 uppercase tracking-widest">Net Score</p>
-                        <div className="p-2 bg-emerald-100 rounded-lg group-hover:scale-110 group-hover:bg-emerald-200 transition-all">
-                          <Target className="w-4 h-4 text-emerald-600" />
+                        <p className="text-[10px] font-bold text-blue-600/80 uppercase tracking-widest">Net Score</p>
+                        <div className="p-2 bg-blue-100 rounded-lg group-hover:scale-110 group-hover:bg-blue-200 transition-all">
+                          <Target className="w-4 h-4 text-blue-600" />
                         </div>
                       </div>
-                      <h3 className="text-xl font-black text-emerald-900">{totalNetScore}</h3>
+                      <h3 className="text-xl font-black text-blue-900">{totalNetScore}</h3>
+                    </div>
+
+                    <div className="bg-emerald-50/60 p-5 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md hover:bg-emerald-50 transition-all group">
+                      <div className="flex justify-between items-start mb-4">
+                        <p className="text-[10px] font-bold text-emerald-600/80 uppercase tracking-widest">Outreach</p>
+                        <div className="p-2 bg-emerald-100 rounded-lg group-hover:scale-110 group-hover:bg-emerald-200 transition-all">
+                          <Trophy className="w-4 h-4 text-emerald-600" />
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-black text-emerald-900">{totalOutreach}</h3>
                     </div>
 
                     <div className="bg-amber-50/60 p-5 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md hover:bg-amber-50 transition-all group">
                       <div className="flex justify-between items-start mb-4">
-                        <p className="text-[10px] font-bold text-amber-600/80 uppercase tracking-widest">Outreach</p>
+                        <p className="text-[10px] font-bold text-amber-600/80 uppercase tracking-widest">Mentor Rating</p>
                         <div className="p-2 bg-amber-100 rounded-lg group-hover:scale-110 group-hover:bg-amber-200 transition-all">
-                          <Trophy className="w-4 h-4 text-amber-600" />
+                          <Star className="w-4 h-4 text-amber-600" />
                         </div>
                       </div>
-                      <h3 className="text-xl font-black text-amber-900">{totalOutreach}</h3>
-                    </div>
-
-                    <div className="bg-blue-50/60 p-5 rounded-2xl border border-blue-100 shadow-sm hover:shadow-md hover:bg-blue-50 transition-all group">
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="text-[10px] font-bold text-blue-600/80 uppercase tracking-widest">Mentor Rating</p>
-                        <div className="p-2 bg-blue-100 rounded-lg group-hover:scale-110 group-hover:bg-blue-200 transition-all">
-                          <Star className="w-4 h-4 text-blue-600" />
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-black text-blue-900">{mentoringScore}</h3>
+                      <h3 className="text-xl font-black text-amber-900">{mentoringScore}</h3>
                     </div>
                   </div>
 
@@ -535,22 +538,22 @@ const MentorDashboard = () => {
               {activeTab === 'mentees' && (
                 <div className="space-y-6">
                   {academicMentee ? (
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-6">
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-4 sm:p-6">
                       <button 
                         onClick={() => setAcademicMentee(null)} 
-                        className="mb-6 flex items-center text-sm font-bold text-gray-500 hover:text-gray-900 transition gap-2"
+                        className="mb-6 flex items-center text-sm font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 hover:bg-indigo-100 transition shadow-sm gap-3 active:scale-95"
                       >
-                        <ArrowLeft className="w-4 h-4" /> Back to Mentee List
+                        <ArrowLeft className="w-5 h-5" /> Back to Mentee List
                       </button>
                       <StudentAcademicTasks student={academicMentee} />
                     </div>
                   ) : spiritualMentee ? (
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-6">
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden p-4 sm:p-6">
                       <button 
                         onClick={() => setSpiritualMentee(null)} 
-                        className="mb-6 flex items-center text-sm font-bold text-gray-500 hover:text-gray-900 transition gap-2"
+                        className="mb-6 flex items-center text-sm font-bold text-amber-600 bg-amber-50 px-4 py-2 rounded-xl border border-amber-100 hover:bg-amber-100 transition shadow-sm gap-3 active:scale-95"
                       >
-                        <ArrowLeft className="w-4 h-4" /> Back to Mentee List
+                        <ArrowLeft className="w-5 h-5" /> Back to Mentee List
                       </button>
                       <StudentSpiritualActivities student={spiritualMentee} />
                     </div>

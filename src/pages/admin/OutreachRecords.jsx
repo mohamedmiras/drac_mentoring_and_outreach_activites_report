@@ -717,9 +717,9 @@ const OutreachRecords = () => {
                 <div className="space-y-1">
                   <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-orange-600" /> 
-                    Elite Top Performers
+                    ELITE TOP PERFORMERS
                   </h3>
-                  <p className="text-[9px] font-medium text-orange-800/60 uppercase tracking-[0.15em]">Based on Net Score (Outreach & Mission 100 Only)</p>
+                  <p className="text-[8px] font-medium text-gray-500 mt-0.5">Based on net score (outreach & mission 100 only)</p>
                 </div>
                 <span className="text-[9px] font-bold text-orange-700 uppercase tracking-widest bg-white/80 px-3 py-1 rounded-full border border-orange-200/50 shadow-sm">Top 5 Rankings</span>
               </div>
@@ -738,7 +738,7 @@ const OutreachRecords = () => {
                     };
 
                     return (
-                      <div key={idx} className="p-4 lg:px-8 hover:bg-white/80 transition-all duration-300 flex items-center gap-4 group relative hover:shadow-lg hover:shadow-orange-100/10 hover:-translate-y-0.5 z-0 hover:z-10">
+                      <div key={idx} className="p-3 lg:px-8 hover:bg-white/80 transition-all duration-300 flex items-center gap-4 group relative hover:shadow-lg hover:shadow-orange-100/10 hover:-translate-y-0.5 z-0 hover:z-10">
                         <div className="relative shrink-0">
                           <div className="w-14 h-14 rounded-full border-2 border-slate-100 overflow-hidden bg-slate-50 shadow-sm transition-transform group-hover:scale-105">
                             {st.photoURL ? (
@@ -762,16 +762,16 @@ const OutreachRecords = () => {
 
                         <div className="flex-1 min-w-0 ml-2">
                           <div className="flex items-center gap-2">
-                            <p className="font-semibold text-gray-900 text-sm lg:text-base truncate leading-tight group-hover:text-brand-blue transition-colors">{st.name}</p>
-                            <span className="text-[9px] font-black text-brand-blue uppercase tracking-tighter bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 shrink-0">
+                            <p className="font-medium text-gray-900 text-[13px] sm:text-base truncate leading-tight group-hover:text-brand-blue transition-colors">{st.name}</p>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight shrink-0">
                               {getShortClass(st.className)}
                             </span>
                           </div>
                         </div>
 
-                    <div className="text-right shrink-0 bg-white/90 backdrop-blur-sm px-5 py-2 rounded-2xl border border-blue-200/50 shadow-md shadow-blue-100/40 transition-transform group-hover:scale-105">
-                      <p className="text-lg font-bold text-brand-blue leading-none">{st.score}</p>
-                      <p className="text-[8px] font-medium text-brand-blue/50 tracking-widest mt-1 uppercase">net pts</p>
+                    <div className="text-right shrink-0 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-2xl border border-blue-200/50 shadow-md shadow-blue-100/40 transition-transform group-hover:scale-105">
+                      <p className="text-base font-medium text-brand-blue leading-none">{st.score}</p>
+                      <p className="text-[7px] font-medium text-brand-blue/50 tracking-widest mt-1 uppercase">net pts</p>
                     </div>
                         </div>
                       );

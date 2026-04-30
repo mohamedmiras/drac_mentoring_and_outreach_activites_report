@@ -569,8 +569,8 @@ const GlobalInsights = ({ isAdmin = true }) => {
                   <Trophy className="w-8 h-8 text-yellow-500 drop-shadow-sm" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">Elite 5 Performers</h2>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Global Top Rankings</p>
+                  <h2 className="text-2xl font-black text-gray-900 tracking-tight uppercase">ELITE 5 PERFORMERS</h2>
+                  <p className="text-[8px] font-medium text-gray-500 mt-1">Global top rankings</p>
                 </div>
               </div>
 
@@ -613,19 +613,19 @@ const GlobalInsights = ({ isAdmin = true }) => {
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05, ease: "easeOut" }}
-                        className={`flex items-center justify-between p-4 md:p-5 rounded-2xl border transition-all duration-300 group hover:-translate-y-[2px] hover:shadow-lg ${isTop3 ? bgColors[i] : 'bg-white border-gray-100 hover:border-brand-blue/30'}`}
+                        className={`flex items-center justify-between p-3 sm:p-5 rounded-2xl border transition-all duration-300 group hover:-translate-y-[2px] hover:shadow-lg ${isTop3 ? bgColors[i] : 'bg-white border-gray-100 hover:border-brand-blue/30'}`}
                       >
                         <div className="flex items-center gap-4 md:gap-5">
                           <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg transition-colors duration-300 ${isTop3 ? rankColors[i] : 'bg-gray-100 text-gray-400 border border-gray-200 group-hover:bg-brand-blue group-hover:text-white group-hover:border-brand-blue'}`}>
                             {i + 1}
                           </div>
                           <div className="flex flex-col">
-                            <span className="font-black text-gray-900 text-lg leading-tight mb-1">{student.fullName}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-black text-gray-500 bg-white px-2 py-0.5 rounded-md border border-gray-100 uppercase tracking-widest shadow-sm">
+                            <span className="font-bold text-gray-900 text-sm sm:text-lg leading-tight mb-0.5">{student.fullName}</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">
                                 {getShortClassName(student.className)}
                               </span>
-                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                              <span className="text-[8px] sm:text-[10px] font-medium text-gray-400 uppercase tracking-wider">
                                 ADM: {student.admissionNumber}
                               </span>
                             </div>
@@ -633,8 +633,8 @@ const GlobalInsights = ({ isAdmin = true }) => {
                         </div>
                         
                         <div className="flex flex-col items-end justify-center">
-                          <span className="text-[8px] font-black text-gray-400 tracking-widest mb-0.5">net pts</span>
-                          <span className={`text-2xl font-black tabular-nums tracking-tight ${i === 0 ? 'text-yellow-600' : i === 1 ? 'text-gray-600' : i === 2 ? 'text-orange-600' : 'text-brand-blue'}`}>
+                          <span className="text-[7px] sm:text-[8px] font-black text-gray-400 tracking-widest mb-0.5">net pts</span>
+                          <span className={`text-lg sm:text-2xl font-bold tabular-nums tracking-tight ${i === 0 ? 'text-yellow-600' : i === 1 ? 'text-gray-600' : i === 2 ? 'text-orange-600' : 'text-brand-blue'}`}>
                             {student.tempScore || 0}
                           </span>
                         </div>
