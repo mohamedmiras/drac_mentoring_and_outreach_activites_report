@@ -289,7 +289,7 @@ const MentorDashboard = () => {
             )}
           >
             <tab.icon className={cn("w-5 h-5", activeTab === tab.id ? "text-blue-200" : "")} />
-            <span className="text-[9px] font-bold uppercase tracking-tight">{tab.label.split(' ')[0]}</span>
+            <span className="text-[8px] font-bold uppercase tracking-tight">{tab.label.split(' ')[0]}</span>
           </button>
         ))}
         <button
@@ -297,7 +297,7 @@ const MentorDashboard = () => {
           className="flex flex-col items-center justify-center gap-1 flex-1 py-1 text-red-400/80"
         >
           <LogOut className="w-5 h-5" />
-          <span className="text-[9px] font-bold uppercase tracking-tight">Exit</span>
+          <span className="text-[8px] font-bold uppercase tracking-tight">Exit</span>
         </button>
       </nav>
 
@@ -584,8 +584,8 @@ const MentorDashboard = () => {
 
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
                     <div>
-                      <h2 className="text-2xl font-extrabold text-gray-900">Mentees Hub</h2>
-                      <p className="text-sm text-gray-500 font-medium mt-1">Comprehensive view of assigned students.</p>
+                      <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 leading-tight">Mentees Hub</h2>
+                      <p className="text-xs sm:text-sm text-gray-500 font-medium mt-0.5">Comprehensive view of assigned students.</p>
                     </div>
                     <div className="relative">
                       <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -691,7 +691,7 @@ const MentorDashboard = () => {
                                 {mentee.photoURL ? <img src={mentee.photoURL} alt="" className="w-full h-full object-cover" /> : <UserCircle className="w-5 h-5 text-gray-400" />}
                               </div>
                               <div className="min-w-0">
-                                <h3 className="font-bold text-gray-900 text-xs truncate leading-tight mb-0.5">{mentee.fullName}</h3>
+                                <h3 className="font-medium text-gray-900 text-[11px] truncate leading-tight mb-0.5">{mentee.fullName}</h3>
                                 <div className="flex items-center gap-1.5 text-[9px] text-gray-500 font-extrabold uppercase tracking-tight">
                                   <span className="bg-gray-100 px-1 py-0.5 rounded">{getShortClass(mentee.className)}</span>
                                 </div>
@@ -699,7 +699,7 @@ const MentorDashboard = () => {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <div className="text-right flex flex-col items-end">
-                                <div className="px-1.5 py-0.5 bg-blue-50 text-[#172554] border border-blue-100/50 rounded text-[9px] font-bold mb-0.5">
+                                <div className="px-1.5 py-0.5 bg-blue-50 text-[#172554] border border-blue-100/50 rounded text-[8px] font-medium mb-0.5">
                                   {mentee.netScore || 0} Pts
                                 </div>
                                 <div className="flex items-center gap-0.5 text-gray-500 text-[8px] font-normal">
