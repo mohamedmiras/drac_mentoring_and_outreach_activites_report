@@ -264,9 +264,32 @@ const MentorDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex font-sans text-slate-900">
+    <div className="min-h-screen bg-gray-50 flex font-inter pb-16 md:pb-0">
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172554] border-t border-blue-800/50 z-50 flex items-center justify-around px-2 py-2 shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 flex-1 py-1 transition-all rounded-lg",
+              activeTab === tab.id ? "bg-blue-800/40 text-white" : "text-blue-300/50"
+            )}
+          >
+            <tab.icon className={cn("w-5 h-5", activeTab === tab.id ? "text-blue-200" : "")} />
+            <span className="text-[9px] font-bold uppercase tracking-tight">{tab.label.split(' ')[0]}</span>
+          </button>
+        ))}
+        <button
+          onClick={handleLogout}
+          className="flex flex-col items-center justify-center gap-1 flex-1 py-1 text-red-400/80"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="text-[9px] font-bold uppercase tracking-tight">Exit</span>
+        </button>
+      </nav>
 
-      {/* Sidebar - Matching Admin Layout Theme */}
+      {/* Desktop Sidebar */}
       <aside className="w-64 bg-[#172554] border-r border-blue-800/50 hidden md:block sticky top-0 h-screen z-30 shrink-0 shadow-2xl">
         <div className="flex flex-col h-full bg-gradient-to-b from-[#172554] to-[#1e3a8a]">
           <div className="flex items-center gap-3 h-24 px-6 border-b border-blue-800/50 bg-[#172554]/50 backdrop-blur-md transition-all group/logo">
