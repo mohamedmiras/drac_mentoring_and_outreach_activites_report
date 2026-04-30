@@ -35,6 +35,18 @@ const nicknameMap = {
   "Usthad Salman Hudawi": "Salman Hudawi"
 };
 
+const getShortClass = (name) => {
+  if (!name) return '-';
+  const n = name.toLowerCase();
+  if (n.includes('secondary final')) return 'S5';
+  if (n.includes('senior secondary 1')) return 'SS1';
+  if (n.includes('senior secondary 2')) return 'SS2';
+  if (n.includes('degree 1st')) return 'D1';
+  if (n.includes('degree 2nd')) return 'D2';
+  if (n.includes('degree 3rd')) return 'D3';
+  return name.split(' ').filter(w => w.length > 0).map(w => w[0]).join('').toUpperCase().substring(0, 3);
+};
+
 const getNickname = (fullName) => {
   return nicknameMap[fullName] || fullName;
 };
@@ -450,7 +462,7 @@ const MentorDashboard = () => {
                           <PieChart className="w-4 h-4 text-violet-600" />
                         </div>
                       </div>
-                      <h3 className="text-2xl font-black text-violet-900">{campusShare}%</h3>
+                      <h3 className="text-xl font-black text-violet-900">{campusShare}%</h3>
                     </div>
 
                     <div className="bg-emerald-50/60 p-5 rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md hover:bg-emerald-50 transition-all group">
@@ -460,7 +472,7 @@ const MentorDashboard = () => {
                           <Target className="w-4 h-4 text-emerald-600" />
                         </div>
                       </div>
-                      <h3 className="text-2xl font-black text-emerald-900">{totalNetScore}</h3>
+                      <h3 className="text-xl font-black text-emerald-900">{totalNetScore}</h3>
                     </div>
 
                     <div className="bg-amber-50/60 p-5 rounded-2xl border border-amber-100 shadow-sm hover:shadow-md hover:bg-amber-50 transition-all group">
@@ -470,7 +482,7 @@ const MentorDashboard = () => {
                           <Trophy className="w-4 h-4 text-amber-600" />
                         </div>
                       </div>
-                      <h3 className="text-2xl font-black text-amber-900">{totalOutreach}</h3>
+                      <h3 className="text-xl font-black text-amber-900">{totalOutreach}</h3>
                     </div>
 
                     <div className="bg-blue-50/60 p-5 rounded-2xl border border-blue-100 shadow-sm hover:shadow-md hover:bg-blue-50 transition-all group">
@@ -480,7 +492,7 @@ const MentorDashboard = () => {
                           <Star className="w-4 h-4 text-blue-600" />
                         </div>
                       </div>
-                      <h3 className="text-2xl font-black text-blue-900">{mentoringScore}</h3>
+                      <h3 className="text-xl font-black text-blue-900">{mentoringScore}</h3>
                     </div>
                   </div>
 
@@ -546,29 +558,29 @@ const MentorDashboard = () => {
                     <>
                       {/* Mentees Cover Photo Area */}
                       <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                    className="relative w-full h-40 sm:h-56 rounded-2xl overflow-hidden shadow-sm group/cover flex shrink-0 border border-gray-200 bg-gray-50"
-                    style={mentorProfile.coverURL ? { backgroundImage: `url(${mentorProfile.coverURL})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
-                  >
-                    {!mentorProfile.coverURL && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center">
-                          <ImageIcon className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                          <p className="text-sm text-gray-400 font-medium">Add a cover photo with your mentees</p>
-                        </div>
-                      </div>
-                    )}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4 }}
+                        className="relative w-full h-40 sm:h-56 rounded-2xl overflow-hidden shadow-sm group/cover flex shrink-0 border border-gray-200 bg-gray-50"
+                        style={mentorProfile.coverURL ? { backgroundImage: `url(${mentorProfile.coverURL})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+                      >
+                        {!mentorProfile.coverURL && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-center">
+                              <ImageIcon className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                              <p className="text-sm text-gray-400 font-medium">Add a cover photo with your mentees</p>
+                            </div>
+                          </div>
+                        )}
 
-                    {mentorProfile.coverURL && <div className="absolute inset-0 bg-slate-900/10"></div>}
+                        {mentorProfile.coverURL && <div className="absolute inset-0 bg-slate-900/10"></div>}
 
-                    <label className="absolute top-4 right-4 z-20 p-2 sm:px-3 sm:py-2 bg-white/80 hover:bg-white backdrop-blur-md rounded-lg text-gray-700 cursor-pointer transition-all flex items-center gap-2 opacity-0 group-hover/cover:opacity-100 shadow-sm border border-gray-200">
-                      {updatingCover ? <div className="w-4 h-4 border-2 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin"></div> : <Camera className="w-4 h-4 text-gray-500" />}
-                      <span className="text-xs font-bold hidden sm:inline">Change Cover</span>
-                      <input type="file" className="sr-only" accept="image/jpeg, image/png, image/webp" onChange={handleUpdateCoverPhoto} disabled={updatingCover} />
-                    </label>
-                  </motion.div>
+                        <label className="absolute top-4 right-4 z-20 p-2 sm:px-3 sm:py-2 bg-white/80 hover:bg-white backdrop-blur-md rounded-lg text-gray-700 cursor-pointer transition-all flex items-center gap-2 opacity-0 group-hover/cover:opacity-100 shadow-sm border border-gray-200">
+                          {updatingCover ? <div className="w-4 h-4 border-2 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin"></div> : <Camera className="w-4 h-4 text-gray-500" />}
+                          <span className="text-xs font-bold hidden sm:inline">Change Cover</span>
+                          <input type="file" className="sr-only" accept="image/jpeg, image/png, image/webp" onChange={handleUpdateCoverPhoto} disabled={updatingCover} />
+                        </label>
+                      </motion.div>
 
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
                     <div>
@@ -588,7 +600,8 @@ const MentorDashboard = () => {
                   </div>
 
                   <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
+                    {/* Desktop Table View */}
+                    <div className="hidden sm:block overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-gray-50/50 border-b border-gray-200 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
@@ -617,8 +630,7 @@ const MentorDashboard = () => {
                                 </div>
                               </td>
                               <td className="p-4">
-                                <p className="font-medium text-gray-700 text-sm">{mentee.className}</p>
-                                <p className="text-xs text-gray-400">Roll No: {mentee.rollNumber || '-'}</p>
+                                <p className="font-bold text-gray-700 text-sm">{getShortClass(mentee.className)}</p>
                               </td>
                               <td className="p-4 text-center">
                                 <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -647,11 +659,83 @@ const MentorDashboard = () => {
                             </tr>
                           )) : (
                             <tr>
-                              <td colSpan="5" className="p-8 text-center text-gray-500 text-sm">No mentees found matching your search.</td>
+                              <td colSpan="5" className="p-12 text-center text-gray-400 font-medium italic">No mentees found matching your search.</td>
                             </tr>
                           )}
                         </tbody>
                       </table>
+                    </div>
+
+                    {/* Mobile Card List View */}
+                    <div className="sm:hidden divide-y divide-gray-100">
+                      {loading ? (
+                        [1, 2, 3].map(i => (
+                          <div key={i} className="p-4"><div className="h-16 bg-slate-100 animate-pulse rounded-xl"></div></div>
+                        ))
+                      ) : filteredMentees.length > 0 ? filteredMentees.map(mentee => {
+                        const getShortClass = (name) => {
+                          if (!name) return '-';
+                          const n = name.toLowerCase();
+                          if (n.includes('secondary final')) return 'S5';
+                          if (n.includes('senior secondary 1')) return 'SS1';
+                          if (n.includes('senior secondary 2')) return 'SS2';
+                          if (n.includes('degree 1st')) return 'D1';
+                          if (n.includes('degree 2nd')) return 'D2';
+                          if (n.includes('degree 3rd')) return 'D3';
+                          return name.split(' ').filter(w => w.length > 0).map(w => w[0]).join('').toUpperCase().substring(0, 3);
+                        };
+                        return (
+                          <div key={mentee.id} className="p-3 flex items-center justify-between gap-2 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                                {mentee.photoURL ? <img src={mentee.photoURL} alt="" className="w-full h-full object-cover" /> : <UserCircle className="w-5 h-5 text-gray-400" />}
+                              </div>
+                              <div className="min-w-0">
+                                <h3 className="font-bold text-gray-900 text-xs truncate leading-tight mb-0.5">{mentee.fullName}</h3>
+                                <div className="flex items-center gap-1.5 text-[9px] text-gray-500 font-extrabold uppercase tracking-tight">
+                                  <span className="bg-gray-100 px-1 py-0.5 rounded">{getShortClass(mentee.className)}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <div className="text-right flex flex-col items-end">
+                                <div className="px-1.5 py-0.5 bg-blue-50 text-[#172554] border border-blue-100/50 rounded text-[9px] font-bold mb-0.5">
+                                  {mentee.netScore || 0} Pts
+                                </div>
+                                <div className="flex items-center gap-0.5 text-gray-500 text-[8px] font-normal">
+                                  <span>{mentee.totalStars || 0}</span>
+                                  <Star className="w-2 h-2 fill-amber-300 text-amber-300" />
+                                </div>
+                              </div>
+                              <div className="flex gap-1">
+                                <button 
+                                  onClick={() => setAcademicMentee(mentee)} 
+                                  className="w-8 h-8 flex items-center justify-center text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg active:scale-90 transition-transform"
+                                  title="Academic"
+                                >
+                                  <BookOpen className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
+                                  onClick={() => setSpiritualMentee(mentee)} 
+                                  className="w-8 h-8 flex items-center justify-center text-amber-600 bg-amber-50 border border-amber-100 rounded-lg active:scale-90 transition-transform"
+                                  title="Spiritual"
+                                >
+                                  <Activity className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
+                                  onClick={() => navigate(`/mentor/mentee/${mentee.id}`, { state: { student: mentee } })} 
+                                  className="w-8 h-8 flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-100 rounded-lg active:scale-90 transition-transform"
+                                  title="View Profile"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }) : (
+                        <div className="p-8 text-center text-gray-400 text-sm italic">No mentees found.</div>
+                      )}
                     </div>
                   </div>
                   </>
