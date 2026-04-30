@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { motion } from 'framer-motion';
-import { User, Award, Calendar, LogOut, Activity, Star, Trophy, Target, PieChart, Pencil, Download, Key, Globe, UserCircle } from 'lucide-react';
+import { User, Award, Calendar, LogOut, Activity, Star, Trophy, Target, PieChart, Pencil, Download, Key, Globe, UserCircle, Sparkles, BookOpen } from 'lucide-react';
 import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import AddAchievementModal from '../admin/components/AddAchievementModal';
@@ -544,14 +544,14 @@ const StudentDashboard = () => {
                 <div className="space-y-8 relative z-10">
                   <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white">
                     <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                      <Activity className="w-6 h-6 text-brand-blue" />
+                      <Sparkles className="w-6 h-6 text-brand-blue" />
                       Spiritual Activities Performance
                     </h3>
                     <StudentSpiritualActivities student={student} readOnly={true} />
                   </div>
                   <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white">
                     <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                      <Target className="w-6 h-6 text-indigo-600" />
+                      <BookOpen className="w-6 h-6 text-emerald-600" />
                       Academic Tasks Progress
                     </h3>
                     <StudentAcademicTasks student={student} readOnly={true} />

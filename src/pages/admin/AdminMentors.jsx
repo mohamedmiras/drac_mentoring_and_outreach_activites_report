@@ -224,8 +224,8 @@ const AdminMentors = () => {
                   </div>
 
                   <div className="relative z-10 flex-1">
-                    <h3 className="text-2xl font-black tracking-tight mb-1">{getNickname(mentor.name)}</h3>
-                    <p className="text-sm font-bold opacity-70 mb-4">{mentor.name}</p>
+                    <h3 className="text-3xl font-medium tracking-tight mb-1">{getNickname(mentor.name)}</h3>
+                    <p className="text-base font-normal opacity-70 mb-4">{mentor.name}</p>
                     
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/50 backdrop-blur-sm rounded-lg border border-white/40 text-xs font-bold shadow-sm">
                       <Star className="w-3.5 h-3.5" />

@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, UserCircle, Users, BarChart3, Settings,
   Target, Trophy, Star, ArrowRight, Eye, PlusCircle, MessageSquare,
-  Download, Image as ImageIcon, KeyRound, Bell, Search, LayoutDashboard, PieChart, Camera, BookOpen, ArrowLeft, Activity
+  Download, Image as ImageIcon, KeyRound, Bell, Search, LayoutDashboard, PieChart, Camera, BookOpen, ArrowLeft, Activity, Sparkles
 } from 'lucide-react';
 import { processAndUploadImage } from '../../lib/imageOptimization';
 import clsx from 'clsx';
@@ -648,14 +648,14 @@ const MentorDashboard = () => {
                               </td>
                               <td className="p-4 pr-6">
                                 <div className="flex items-center justify-end gap-2.5 transition-all">
-                                  <button onClick={() => setAcademicMentee(mentee)} className="p-2 text-gray-500 hover:text-indigo-600 bg-gray-50/50 hover:bg-indigo-50 border border-gray-100 hover:border-indigo-100 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-95" title="Academic Tasks">
+                                  <button onClick={() => setAcademicMentee(mentee)} className="p-2 text-gray-500 hover:text-emerald-600 bg-gray-50/50 hover:bg-emerald-50 border border-gray-100 hover:border-emerald-100 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-95" title="Academic Tasks">
                                     <BookOpen className="w-4 h-4" />
                                   </button>
                                   <button onClick={() => setSpiritualMentee(mentee)} className="p-2 text-gray-500 hover:text-amber-600 bg-gray-50/50 hover:bg-amber-50 border border-gray-100 hover:border-amber-100 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-95" title="Spiritual Activities">
-                                    <Activity className="w-4 h-4" />
+                                    <Sparkles className="w-4 h-4" />
                                   </button>
                                   <button onClick={() => navigate(`/mentor/mentee/${mentee.id}`, { state: { student: mentee } })} className="p-2 text-gray-500 hover:text-brand-blue bg-gray-50/50 hover:bg-blue-50 border border-gray-100 hover:border-blue-100 rounded-lg transition-all shadow-sm hover:shadow-md active:scale-95" title="View Profile">
-                                    <Eye className="w-4 h-4" />
+                                    <Trophy className="w-4 h-4" />
                                   </button>
                                 </div>
                               </td>
@@ -713,7 +713,7 @@ const MentorDashboard = () => {
                               <div className="flex gap-1">
                                 <button 
                                   onClick={() => setAcademicMentee(mentee)} 
-                                  className="w-8 h-8 flex items-center justify-center text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg active:scale-90 transition-transform"
+                                  className="w-8 h-8 flex items-center justify-center text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-lg active:scale-90 transition-transform"
                                   title="Academic"
                                 >
                                   <BookOpen className="w-3.5 h-3.5" />
@@ -723,14 +723,14 @@ const MentorDashboard = () => {
                                   className="w-8 h-8 flex items-center justify-center text-amber-600 bg-amber-50 border border-amber-100 rounded-lg active:scale-90 transition-transform"
                                   title="Spiritual"
                                 >
-                                  <Activity className="w-3.5 h-3.5" />
+                                  <Sparkles className="w-3.5 h-3.5" />
                                 </button>
                                 <button 
                                   onClick={() => navigate(`/mentor/mentee/${mentee.id}`, { state: { student: mentee } })} 
                                   className="w-8 h-8 flex items-center justify-center text-blue-600 bg-blue-50 border border-blue-100 rounded-lg active:scale-90 transition-transform"
                                   title="View Profile"
                                 >
-                                  <Eye className="w-3.5 h-3.5" />
+                                  <Trophy className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </div>
