@@ -129,10 +129,6 @@ const MentorDashboard = () => {
     caption: 'Inspiring excellence and shaping the future'
   });
 
-  useEffect(() => {
-    fetchMentorData();
-  }, [effectiveUser]);
-
   const fetchMentorData = async () => {
     setLoading(true);
     try {
@@ -298,6 +294,10 @@ const MentorDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    fetchMentorData();
+  }, [effectiveUser]);
+
   const handleEditMenteeSave = async (updatedData) => {
     if (!editingMentee) return;
     setIsSavingMenteeEdit(true);
@@ -388,7 +388,7 @@ const MentorDashboard = () => {
   const [allStudents, setAllStudents] = useState([]);
   const [allMentors, setAllMentors] = useState([]);
   const [allAchievements, setAllAchievements] = useState([]);
-  const [globalMetrics, setGlobalMetrics] = useState({ outreachByStudent: {} });
+  // const [globalMetrics, setGlobalMetrics] = useState({ outreachByStudent: {} });
   
   // Date Filtering for Coordinator Export
   const [reportFilter, setReportFilter] = useState('All Time');
@@ -397,12 +397,6 @@ const MentorDashboard = () => {
   const [reportStart, setReportStart] = useState('');
   const [reportEnd, setReportEnd] = useState('');
   const [coordinatorLoading, setCoordinatorLoading] = useState(false);
-
-  useEffect(() => {
-    if ((activeTab === 'coordinator' || activeTab === 'mentors') && allStudents.length === 0) {
-      fetchCoordinatorData();
-    }
-  }, [activeTab]);
 
   const fetchCoordinatorData = async () => {
     setCoordinatorLoading(true);
@@ -428,6 +422,12 @@ const MentorDashboard = () => {
       setCoordinatorLoading(false);
     }
   };
+
+  useEffect(() => {
+    if ((activeTab === 'coordinator' || activeTab === 'mentors') && allStudents.length === 0) {
+      fetchCoordinatorData();
+    }
+  }, [activeTab, allStudents.length]);
 
   const exportGlobalCSV = (mode = 'all') => {
     if (allStudents.length === 0) return;

@@ -63,10 +63,6 @@ const ClassView = () => {
     return className;
   };
 
-  useEffect(() => {
-    fetchStudents();
-  }, [className]);
-
   const fetchStudents = async () => {
     setLoading(true);
     try {
@@ -83,6 +79,10 @@ const ClassView = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchStudents();
+  }, [className]);
 
   const handleAddStudent = async (e) => {
     e.preventDefault();
