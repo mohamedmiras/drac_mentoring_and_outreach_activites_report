@@ -76,6 +76,7 @@ const AddAchievementModal = ({ isOpen, onClose, onSave, uploading, initialData =
   const [isOutreach, setIsOutreach] = useState(false);
   const [isMission100, setIsMission100] = useState(false);
   const [presentedAsPaper, setPresentedAsPaper] = useState(false);
+  const [posterQuantity, setPosterQuantity] = useState(1);
   
   const [internalLoading, setInternalLoading] = useState(false);
   const [photoError, setPhotoError] = useState(false);
@@ -156,6 +157,7 @@ const AddAchievementModal = ({ isOpen, onClose, onSave, uploading, initialData =
       setWebsiteName(''); setWebsiteURL(''); setDescription(''); setPhotoFile(null); setExistingPhotoURL('');
       setStars(0); setGrade('Excellent'); setMarks(8.0); setLanguage(''); setCustomLanguage('');
       setIsOutreach(false); setIsMission100(false); setPresentedAsPaper(false);
+      setPosterQuantity(1);
       setPubMonth(MONTHS[new Date().getMonth()]); 
       setPubYear(new Date().getFullYear().toString()); 
       setPubDay(new Date().getDate().toString());
@@ -257,6 +259,8 @@ const AddAchievementModal = ({ isOpen, onClose, onSave, uploading, initialData =
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
+    if (internalLoading) return; // Prevent double submissions
+    
     if (type !== 'Contest' && type !== 'Workshop / Seminar Attendance' && stars === 0) {
       setFieldErrors(prev => ({...prev, stars: 'Please award at least 1 star.'}));
       setError("Please fill in all required fields highlighted below.");
@@ -276,7 +280,7 @@ const AddAchievementModal = ({ isOpen, onClose, onSave, uploading, initialData =
       const scores = calculateEntryScore(selectedGrade, selectedStars);
       
       const payload = {
-        title: type === 'Workshop / Seminar Attendance' ? workshopProgram : (type === 'Contest' ? `${contestName}${contestLevel ? ` (${contestLevel})` : ''}` : `${presentedAsPaper ? 'Presentation' : type}${finalSpecificType ? ` - ${finalSpecificType}` : ''}`),
+        title: (type === 'Workshop / Seminar Attendance' ? workshopProgram : (type === 'Contest' ? `${contestName}${contestLevel ? ` (${contestLevel})` : ''}` : `${presentedAsPaper ? 'Presentation' : type}${finalSpecificType ? ` - ${finalSpecificType}` : ''}`)) + (type === 'Poster' && posterQuantity > 1 ? ` (Bulk x${posterQuantity})` : ''),
         type: presentedAsPaper ? 'Presentation' : type,
         specificType: type === 'Workshop / Seminar Attendance' ? workshopOrganizer : (type === 'Contest' ? (finalSpecificType || 'Contest') : finalSpecificType),
         conductedInstitution: type === 'Workshop / Seminar Attendance' ? workshopOrganizer : (['Presentation'].includes(presentedAsPaper ? 'Presentation' : type) ? conductedInstitution : null),
@@ -370,7 +374,7 @@ const AddAchievementModal = ({ isOpen, onClose, onSave, uploading, initialData =
           </button>
         </div>
 
-        <div ref={scrollContainerRef} className="p-6 sm:px-8 overflow-y-auto overscroll-contain touch-pan-y">
+        <div ref={scrollContainerRef} className="flex-1 p-6 sm:px-8 overflow-y-auto overscroll-contain touch-pan-y">
           {error && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">
               {error}
@@ -447,6 +451,27 @@ const AddAchievementModal = ({ isOpen, onClose, onSave, uploading, initialData =
                     </div>
                     {fieldErrors.specificType && <p className="text-red-500 text-[10px] font-bold mt-2 ml-1">{fieldErrors.specificType}</p>}
                   </div>
+                )}
+
+                {/* Bulk Poster Quantity */}
+                {type === 'Poster' && (
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-4 bg-brand-blue/5 border border-brand-blue/10 rounded-xl">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Number of Posters (Bulk Record)</label>
+                    <div className="flex items-center gap-4">
+                      <input 
+                        type="number" 
+                        min="1" 
+                        max="100" 
+                        value={posterQuantity} 
+                        onChange={e => setPosterQuantity(parseInt(e.target.value) || 1)} 
+                        className="w-24 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none bg-white font-bold text-center shadow-sm"
+                      />
+                      <p className="text-xs text-brand-blue/80 font-medium leading-tight">
+                        Recording multiple posters at once? <br/>
+                        <span className="text-[10px] uppercase font-bold tracking-wider">You can adjust total marks in the next step.</span>
+                      </p>
+                    </div>
+                  </motion.div>
                 )}
 
                 {/* Custom Type if 'Other' is selected as Category OR Sub-type */}
@@ -820,6 +845,20 @@ const AddAchievementModal = ({ isOpen, onClose, onSave, uploading, initialData =
             ) : (
               <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-8">
                 
+                {type === 'Poster' && posterQuantity > 1 && (
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-amber-50 border-2 border-amber-200 p-5 rounded-2xl flex items-start gap-4 shadow-sm">
+                    <div className="p-3 bg-amber-100 rounded-xl">
+                      <Award className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-amber-900 mb-1 uppercase tracking-wide">Bulk Evaluation Required</h4>
+                      <p className="text-sm text-amber-800 font-medium">
+                        The student has submitted <strong>{posterQuantity} posters</strong>. Please manually adjust the Stars and Evaluation Marks below to reflect the total combined effort.
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* 1. Star Rating */}
                 <div className={`border p-4 sm:p-8 rounded-2xl flex flex-col items-center shadow-sm transition-colors ${fieldErrors.stars ? 'bg-red-50 border-red-300' : 'bg-orange-50 border-orange-100'}`}>
                   <h3 className={`text-lg font-bold mb-4 tracking-wide uppercase ${fieldErrors.stars ? 'text-red-900' : 'text-orange-900'}`}>Award Stars</h3>

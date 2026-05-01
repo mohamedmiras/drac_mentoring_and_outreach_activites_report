@@ -29,7 +29,7 @@ const AdminLayout = ({ children }) => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/');
+      navigate('/admin-login');
     } catch (e) {
       console.error(e);
     }
@@ -144,6 +144,14 @@ const AdminLayout = ({ children }) => {
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-brand-green border-2 border-white rounded-full shadow-sm"></div>
               </div>
+
+              <button 
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl border border-red-100 hover:bg-red-100 transition-all font-bold text-xs shadow-sm active:scale-95"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log Out</span>
+              </button>
           </div>
         </header>
 

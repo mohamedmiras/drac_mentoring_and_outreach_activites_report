@@ -126,12 +126,22 @@ const OutreachRecords = () => {
   const handleSaveEdit = async () => {
     if (!editingRecord) return;
     const originalRecords = [...records];
-    setRecords(prev => prev.map(r => r.id === editingRecord.id ? { ...r, outreachStatus: editStatus, note: editNotes } : r));
+    
+    const isAccepted = editStatus === 'Accepted';
+    const mission100Update = isAccepted ? { isMission100: true } : {};
+
+    setRecords(prev => prev.map(r => r.id === editingRecord.id ? { 
+      ...r, 
+      outreachStatus: editStatus, 
+      note: editNotes,
+      ...mission100Update
+    } : r));
     setEditingRecord(null);
     try {
       await updateDoc(doc(db, 'achievements', editingRecord.id), {
         outreachStatus: editStatus,
-        note: editNotes
+        note: editNotes,
+        ...mission100Update
       });
     } catch (err) {
       console.error(err);
@@ -142,10 +152,11 @@ const OutreachRecords = () => {
 
   const handleQuickAccept = async (id) => {
     const originalRecords = [...records];
-    setRecords(prev => prev.map(r => r.id === id ? { ...r, outreachStatus: 'Accepted' } : r));
+    setRecords(prev => prev.map(r => r.id === id ? { ...r, outreachStatus: 'Accepted', isMission100: true } : r));
     try {
       await updateDoc(doc(db, 'achievements', id), {
-        outreachStatus: 'Accepted'
+        outreachStatus: 'Accepted',
+        isMission100: true
       });
     } catch (err) {
       console.error(err);

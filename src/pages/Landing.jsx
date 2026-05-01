@@ -1,10 +1,50 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { GraduationCap, UserCircle, School } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { GraduationCap, UserCircle, School, Smartphone, Download } from 'lucide-react';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const [deferredPrompt, setDeferredPrompt] = React.useState(null);
+  const [isInstalled, setIsInstalled] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Check if already in standalone mode (installed)
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      setIsInstalled(true);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setIsInstalled(true);
+      }
+      setDeferredPrompt(null);
+    } else {
+      alert("To install the app:\n\n1. On PC/Android: Look for an 'Install' icon in your browser's address bar.\n2. On iPhone (Safari): Tap the 'Share' icon at the bottom, then select 'Add to Home Screen'.");
+    }
+  };
 
   return (
     <div 
@@ -102,6 +142,31 @@ const Landing = () => {
             <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/0 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition duration-300"></div>
           </motion.button>
         </div>
+
+        {/* PWA Install Prompt */}
+        <AnimatePresence>
+          {!isInstalled && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 30 }}
+              className="fixed bottom-6 right-6 z-50"
+            >
+              <button
+                onClick={handleInstallClick}
+                className="group flex items-center gap-3 bg-gradient-to-r from-blue-900/80 to-indigo-900/80 backdrop-blur-xl border border-blue-400/20 ring-1 ring-white/10 px-4.5 py-3 rounded-2xl text-white shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 hover:scale-105 active:scale-95"
+              >
+                <div className="w-8 h-8 bg-blue-500/20 border border-blue-400/20 rounded-xl flex items-center justify-center group-hover:bg-blue-500/40 transition-all duration-300">
+                  <Smartphone className="w-4.5 h-4.5 text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="text-[7px] font-bold text-blue-300 uppercase tracking-[0.2em] leading-none mb-1.5">App Installation</p>
+                  <p className="text-[11px] font-black text-white leading-none tracking-wide">Add to Home Screen</p>
+                </div>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

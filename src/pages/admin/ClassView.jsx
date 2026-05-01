@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { db } from '../../lib/firebase';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { motion } from 'framer-motion';
-import { Search, Plus, User, ArrowLeft, Calendar, Upload, Star, UserCheck, Trash2 } from 'lucide-react';
+import { Search, Plus, User, ArrowLeft, Calendar, Upload, Star, UserCheck, Trash2, Edit2 } from 'lucide-react';
 import { processAndUploadImage } from '../../lib/imageOptimization';
+import EditStudentModal from './components/EditStudentModal';
 
 const CLASS_NAMES = {
   'sec-final': 'Secondary Final Year',
@@ -25,6 +26,8 @@ const ClassView = () => {
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const MENTORS = [
     "Usthad Abu Shammas Rafeeq Faisy",
     "Usthad Thoyyib Hudawi",
@@ -123,14 +126,50 @@ const ClassView = () => {
 
   const deleteStudent = async (studentId, e) => {
     e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this student? This action cannot be undone.")) return;
+    if (!window.confirm("Are you sure you want to delete this student? This action cannot be undone and will permanently delete all their achievements.")) return;
     
     try {
+      // 1. Delete all achievements for this student to prevent orphaned data
+      const achQuery = query(collection(db, 'achievements'), where('studentId', '==', studentId));
+      const achSnapshot = await getDocs(achQuery);
+      const deletePromises = [];
+      achSnapshot.forEach((document) => {
+        deletePromises.push(deleteDoc(doc(db, 'achievements', document.id)));
+      });
+      await Promise.all(deletePromises);
+
+      // 2. Delete the student profile
       await deleteDoc(doc(db, 'students', studentId));
+      
       fetchStudents();
     } catch (error) {
       console.error("Error deleting student: ", error);
       alert("Failed to delete student");
+    }
+  };
+
+  const handleEditSave = async (updatedData) => {
+    if (!editingStudent) return;
+    setIsSavingEdit(true);
+    try {
+      await updateDoc(doc(db, 'students', editingStudent.id), {
+        fullName: updatedData.fullName,
+        admissionNumber: updatedData.admissionNumber,
+        className: updatedData.className,
+        mentorName: updatedData.mentorName || '',
+        mentorUsername: updatedData.mentorUsername || '',
+        dob: updatedData.dob || '',
+        password: updatedData.password || '',
+        place: updatedData.place || '',
+        email: updatedData.email || '',
+      });
+      setEditingStudent(null);
+      fetchStudents(); // Refresh data
+    } catch (error) {
+      console.error("Failed to update student:", error);
+      alert("Failed to update student. Please try again.");
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -226,13 +265,22 @@ const ClassView = () => {
                 <div className={`p-4 flex items-center gap-3 relative overflow-hidden ${theme.top}`}>
                   <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/30 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
                   
-                  <button 
-                    onClick={(e) => deleteStudent(student.id, e)}
-                    className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors z-20"
-                    title="Delete Student"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="absolute top-2 right-2 flex gap-1 z-20">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setEditingStudent(student); }}
+                      className="p-1.5 text-gray-400 hover:text-brand-blue hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Edit Student"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={(e) => deleteStudent(student.id, e)}
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete Student"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                   
                   <div className="w-12 h-12 rounded-xl bg-white/80 backdrop-blur-md shadow-sm flex items-center justify-center text-brand-blue font-bold text-lg relative overflow-hidden flex-shrink-0 border border-white/60">
                     {student.photoURL ? (
@@ -393,6 +441,17 @@ const ClassView = () => {
             </form>
           </motion.div>
         </div>
+      )}
+
+      {/* Edit Student Modal */}
+      {editingStudent && (
+        <EditStudentModal
+          isOpen={!!editingStudent}
+          onClose={() => setEditingStudent(null)}
+          onSave={handleEditSave}
+          studentData={editingStudent}
+          isSaving={isSavingEdit}
+        />
       )}
     </AdminLayout>
   );

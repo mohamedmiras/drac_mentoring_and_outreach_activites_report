@@ -188,12 +188,12 @@ const StudentDashboard = () => {
         await updateDoc(achRef, payload);
 
         // Adjust student scores based on diff
-        const oldMarks = getAchievementMarks(editingAchievement);
-        const newMarks = payload.totalMarks || 0;
+        const oldMarks = Number(getAchievementMarks(editingAchievement)) || 0;
+        const newMarks = Number(payload.totalMarks) || 0;
         const markDiff = newMarks - oldMarks;
         
-        const oldStars = editingAchievement.stars || 0;
-        const newStars = payload.stars || 0;
+        const oldStars = Number(editingAchievement.stars) || 0;
+        const newStars = Number(payload.stars) || 0;
         const starDiff = newStars - oldStars;
 
         if (markDiff !== 0 || starDiff !== 0) {

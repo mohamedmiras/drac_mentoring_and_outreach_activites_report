@@ -142,6 +142,13 @@ const MeetingRecords = ({ mentees, mentorProfile }) => {
     }
   };
 
+   const openAddWithStudent = (studentId) => {
+    resetForm();
+    setFormData(prev => ({ ...prev, studentIds: [studentId] }));
+    setShowAddForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const openEdit = (meeting) => {
     setEditingMeeting(meeting);
     setFormData({
@@ -295,67 +302,67 @@ const MeetingRecords = ({ mentees, mentorProfile }) => {
     <div className="space-y-8 animate-in fade-in duration-500">
       
       {/* Tracker Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-2xl border border-indigo-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-100/50 rounded-full group-hover:scale-150 transition-transform duration-700 blur-2xl"></div>
-          <div className="flex items-center gap-4 mb-2 relative z-10">
-            <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
-              <Calendar className="w-6 h-6" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-gradient-to-br from-indigo-50 to-white p-4 rounded-2xl border border-indigo-100 shadow-sm relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-indigo-100/50 rounded-full group-hover:scale-150 transition-transform duration-700 blur-2xl"></div>
+          <div className="flex items-center gap-3 mb-1 relative z-10">
+            <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+              <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-bold text-indigo-600/80 uppercase tracking-widest">Total Meetings</p>
-              <h3 className="text-3xl font-black text-indigo-900">{meetings.length}</h3>
+              <p className="text-[10px] font-bold text-indigo-600/80 uppercase tracking-widest">Total Meetings</p>
+              <h3 className="text-2xl font-black text-indigo-900">{meetings.length}</h3>
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-50 to-white p-6 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-100/50 rounded-full group-hover:scale-150 transition-transform duration-700 blur-2xl"></div>
-          <div className="flex items-center gap-4 mb-2 relative z-10">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
-              <CheckCircle2 className="w-6 h-6" />
+        <div className="bg-gradient-to-br from-emerald-50 to-white p-4 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-emerald-100/50 rounded-full group-hover:scale-150 transition-transform duration-700 blur-2xl"></div>
+          <div className="flex items-center gap-3 mb-1 relative z-10">
+            <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-bold text-emerald-600/80 uppercase tracking-widest">Completed 10+</p>
-              <h3 className="text-3xl font-black text-emerald-900">{studentsCompleted10}</h3>
+              <p className="text-[10px] font-bold text-emerald-600/80 uppercase tracking-widest">Completed 10+</p>
+              <h3 className="text-2xl font-black text-emerald-900">{studentsCompleted10}</h3>
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-amber-50 to-white p-6 rounded-2xl border border-amber-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-amber-100/50 rounded-full group-hover:scale-150 transition-transform duration-700 blur-2xl"></div>
-          <div className="flex items-center gap-4 mb-2 relative z-10">
-            <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center">
-              <Target className="w-6 h-6" />
+        <div className="bg-gradient-to-br from-amber-50 to-white p-4 rounded-2xl border border-amber-100 shadow-sm relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-amber-100/50 rounded-full group-hover:scale-150 transition-transform duration-700 blur-2xl"></div>
+          <div className="flex items-center gap-3 mb-1 relative z-10">
+            <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center">
+              <Target className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-bold text-amber-600/80 uppercase tracking-widest">Pending Below 10</p>
-              <h3 className="text-3xl font-black text-amber-900">{studentsBelow10}</h3>
+              <p className="text-[10px] font-bold text-amber-600/80 uppercase tracking-widest">Pending Below 10</p>
+              <h3 className="text-2xl font-black text-amber-900">{studentsBelow10}</h3>
             </div>
           </div>
         </div>
       </div>
 
       {/* Student Progress Bars */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <GraduationCap className="w-5 h-5 text-brand-blue" />
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6">
+        <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <GraduationCap className="w-4 h-4 text-brand-blue" />
           Mentee Meeting Progress
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {mentees.map(m => {
             const count = meetingCounts[m.id] || 0;
             const progress = Math.min((count / 10) * 100, 100);
             const isComplete = count >= 10;
             return (
-              <div key={m.id} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-semibold text-gray-800 text-sm truncate pr-2">{m.fullName}</span>
-                  <span className={cn("text-xs font-black", isComplete ? "text-emerald-600" : "text-amber-600")}>
-                    {count} / 10
+              <div key={m.id} className="bg-gray-50 rounded-xl p-3 border border-gray-100 group/item relative">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="font-bold text-gray-800 text-xs truncate pr-6">{m.fullName.split(' ')[0]}</span>
+                  <span className={cn("text-[10px] font-black", isComplete ? "text-emerald-600" : "text-amber-600")}>
+                    {count}/10
                   </span>
                 </div>
-                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${progress}%` }}
@@ -363,6 +370,15 @@ const MeetingRecords = ({ mentees, mentorProfile }) => {
                     className={cn("h-full rounded-full", isComplete ? "bg-emerald-500" : "bg-amber-400")}
                   />
                 </div>
+                
+                {/* Quick Add Button */}
+                <button 
+                  onClick={() => openAddWithStudent(m.id)}
+                  className="absolute top-2.5 right-2 p-1 bg-white border border-gray-100 rounded-md shadow-sm text-brand-blue opacity-0 group-hover/item:opacity-100 transition-opacity hover:bg-brand-blue hover:text-white"
+                  title="Quick Log Meeting"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
               </div>
             );
           })}
@@ -371,21 +387,21 @@ const MeetingRecords = ({ mentees, mentorProfile }) => {
 
       {/* Action Header */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h2 className="text-2xl font-extrabold text-gray-900">Meeting Records</h2>
+        <h2 className="text-xl font-extrabold text-gray-900">Meeting Records</h2>
         {!showAddForm && (
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button 
               onClick={handleExportToWord}
               disabled={meetings.length === 0}
-              className="flex-1 sm:flex-none px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+              className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 text-sm"
             >
-              <Download className="w-5 h-5 text-gray-400" /> Export to Word
+              <Download className="w-4 h-4 text-gray-400" /> Export
             </button>
             <button 
               onClick={() => setShowAddForm(true)}
-              className="flex-1 sm:flex-none px-6 py-3 bg-brand-blue text-white rounded-xl font-bold shadow-lg shadow-brand-blue/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
+              className="flex-1 sm:flex-none px-5 py-2.5 bg-brand-blue text-white rounded-xl font-bold shadow-lg shadow-brand-blue/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-2 text-sm"
             >
-              <Plus className="w-5 h-5" /> Log New Meeting
+              <Plus className="w-4 h-4" /> Log Meeting
             </button>
           </div>
         )}
@@ -574,36 +590,36 @@ const MeetingRecords = ({ mentees, mentorProfile }) => {
           filteredMeetings.map((meet, idx) => (
             <motion.div 
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
-              key={meet.id} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow relative group"
+              key={meet.id} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow relative group"
             >
-              <div className="flex flex-col lg:flex-row gap-6">
+              <div className="flex flex-col lg:flex-row gap-4">
                 
                 {/* Left Col: Meta */}
-                <div className="lg:w-1/4 flex flex-col gap-3 border-b lg:border-b-0 lg:border-r border-gray-100 pb-4 lg:pb-0 pr-4">
+                <div className="lg:w-1/4 flex flex-col gap-2 border-b lg:border-b-0 lg:border-r border-gray-100 pb-3 lg:pb-0 pr-3">
                   <div>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black tracking-widest uppercase bg-blue-50 text-brand-blue border border-blue-100 mb-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black tracking-widest uppercase bg-blue-50 text-brand-blue border border-blue-100">
                       {meet.purpose === 'Other' ? meet.otherPurpose : meet.purpose}
                     </span>
                   </div>
-                  <div className="flex items-center text-sm font-bold text-gray-700">
-                    <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                  <div className="flex items-center text-[13px] font-bold text-gray-700">
+                    <Calendar className="w-3.5 h-3.5 mr-2 text-gray-400" />
                     {new Date(meet.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </div>
-                  <div className="flex items-center text-sm font-bold text-gray-700">
-                    <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                  <div className="flex items-center text-[13px] font-bold text-gray-700">
+                    <MapPin className="w-3.5 h-3.5 mr-2 text-gray-400" />
                     {meet.location === 'Other' ? meet.otherLocation : meet.location}
                   </div>
                   
-                  <div className="mt-2">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Attended ({meet.studentIds.length})</p>
+                  <div className="mt-1">
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Attended ({meet.studentIds.length})</p>
                     <div className="flex flex-wrap gap-1">
                       {meet.studentIds.length === mentees.length ? (
-                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">All Students</span>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">All Students</span>
                       ) : (
                         meet.studentIds.map(id => {
                           const s = mentees.find(m => m.id === id);
                           if (!s) return null;
-                          return <span key={id} className="text-xs font-semibold text-gray-600 bg-gray-50 px-2 py-0.5 rounded border border-gray-100 truncate max-w-[120px]" title={s.fullName}>{s.fullName.split(' ')[0]}</span>
+                          return <span key={id} className="text-[10px] font-semibold text-gray-600 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 truncate max-w-[100px]" title={s.fullName}>{s.fullName.split(' ')[0]}</span>
                         })
                       )}
                     </div>
@@ -611,15 +627,15 @@ const MeetingRecords = ({ mentees, mentorProfile }) => {
                 </div>
 
                 {/* Right Col: Content */}
-                <div className="lg:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="lg:w-3/4 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Description</p>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{meet.description}</p>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Description</p>
+                    <p className="text-[13px] text-gray-700 whitespace-pre-wrap leading-relaxed">{meet.description}</p>
                   </div>
                   {meet.outcome && (
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Outcome</p>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{meet.outcome}</p>
+                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Outcome</p>
+                      <p className="text-[13px] text-gray-700 whitespace-pre-wrap leading-relaxed">{meet.outcome}</p>
                     </div>
                   )}
                 </div>

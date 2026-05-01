@@ -8,6 +8,7 @@ import { ArrowLeft, User, Award, Plus, Calendar, Trash2, Camera, Star, Trophy, P
 import { processAndUploadImage } from '../../lib/imageOptimization';
 import AddAchievementModal from '../admin/components/AddAchievementModal';
 import EditStudentModal from '../admin/components/EditStudentModal';
+import StudentLeaveActivities from './components/StudentLeaveActivities';
 import confetti from 'canvas-confetti';
 const MentorStudentProfile = () => {
   const { studentId } = useParams();
@@ -102,11 +103,14 @@ const MentorStudentProfile = () => {
         const score = s.id === studentId ? currentNetScore : (s.netScore || 0);
         if (score > 0) totalGlobalScore += score; 
         if (s.classId === docSnap.data().classId) {
-          classMates.push({ id: s.id, score });
+          classMates.push({ id: s.id, score, fullName: s.fullName || '' });
         }
       });
 
-      classMates.sort((a, b) => b.score - a.score);
+      classMates.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.fullName.localeCompare(b.fullName);
+      });
       const myRank = classMates.findIndex(s => s.id === studentId) + 1;
       
       let globalPercentile = 0;
@@ -141,12 +145,12 @@ const MentorStudentProfile = () => {
         const achRef = doc(db, 'achievements', editingAchievement.id);
         await updateDoc(achRef, payload);
 
-        const oldMarks = getAchievementMarks(editingAchievement);
-        const newMarks = payload.totalMarks || 0;
+        const oldMarks = Number(getAchievementMarks(editingAchievement)) || 0;
+        const newMarks = Number(payload.totalMarks) || 0;
         const markDiff = newMarks - oldMarks;
         
-        const oldStars = editingAchievement.stars || 0;
-        const newStars = payload.stars || 0;
+        const oldStars = Number(editingAchievement.stars) || 0;
+        const newStars = Number(payload.stars) || 0;
         const starDiff = newStars - oldStars;
 
         if (markDiff !== 0 || starDiff !== 0) {
@@ -165,10 +169,13 @@ const MentorStudentProfile = () => {
           mentorName: student.mentorName || 'Unknown Mentor'
         });
 
+        const safeMarks = Number(payload.totalMarks) || 0;
+        const safeStars = Number(payload.stars) || 0;
+
         await updateDoc(doc(db, 'students', studentId), {
-          plusPoints: increment(payload.totalMarks || 0),
-          netScore: increment(payload.totalMarks || 0),
-          totalStars: increment(payload.stars || 0)
+          plusPoints: increment(safeMarks),
+          netScore: increment(safeMarks),
+          totalStars: increment(safeStars)
         });
 
         const duration = 2500;
@@ -231,7 +238,7 @@ const MentorStudentProfile = () => {
     if (confirm("Are you sure you want to delete this achievement? Points and Stars will be deducted.")) {
       await deleteDoc(doc(db, 'achievements', ach.id));
       if (ach.marks || ach.stars || ach.totalMarks) {
-        const marksToDeduct = getAchievementMarks(ach) || 0;
+        const marksToDeduct = Number(getAchievementMarks(ach)) || 0;
         const starsToDeduct = Number(ach.stars) || 0;
         await updateDoc(doc(db, 'students', studentId), {
           plusPoints: increment(-marksToDeduct),
@@ -511,13 +518,13 @@ const MentorStudentProfile = () => {
                         <p className="text-lg font-medium text-gray-500">No achievements added yet.</p>
                       </div>
                     ) : (
-                    <div className="space-y-8 relative before:absolute before:inset-0 before:left-5 sm:before:left-6 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
+                    <div className="flex overflow-x-auto snap-x snap-mandatory pb-6 -mx-6 px-6 gap-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] sm:flex-col sm:space-y-8 sm:overflow-visible sm:pb-0 sm:mx-0 sm:px-0 sm:gap-0 relative sm:before:absolute sm:before:inset-0 sm:before:left-6 sm:before:-translate-x-px sm:before:h-full sm:before:w-0.5 sm:before:bg-gradient-to-b sm:before:from-transparent sm:before:via-gray-200 sm:before:to-transparent">
                       {achievements.map((ach) => (
-                        <div key={ach.id} className="relative flex items-start group">
-                          <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full border-4 border-white bg-gray-50 text-gray-400 shadow shrink-0 absolute left-0 group-hover:bg-brand-blue group-hover:text-white transition-colors duration-300 z-10">
+                        <div key={ach.id} className="relative flex items-start group w-[85vw] shrink-0 snap-center sm:w-auto sm:shrink sm:snap-align-none">
+                          <div className="hidden sm:flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full border-4 border-white bg-gray-50 text-gray-400 shadow shrink-0 absolute left-0 group-hover:bg-brand-blue group-hover:text-white transition-colors duration-300 z-10">
                             <Award className="w-4 h-4 sm:w-5 sm:h-5" />
                           </div>
-                          <div className="w-full ml-12 sm:ml-16 p-5 sm:p-6 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+                          <div className="w-full sm:ml-16 p-5 sm:p-6 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col h-full">
                             <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-gradient-to-br from-brand-blue/5 to-brand-green/5 rounded-full blur-2xl pointer-events-none"></div>
 
                             <div className="flex justify-between items-start mb-0.5 relative z-10">
@@ -611,6 +618,11 @@ const MentorStudentProfile = () => {
                     )}
               </div>
             </div>
+
+            <div className="bg-white rounded-3xl shadow-xl shadow-blue-500/5 border border-gray-100 p-6 lg:p-8">
+               <StudentLeaveActivities student={student} />
+            </div>
+
           </div>
         </div>
       </main>
