@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../lib/firebase';
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, UserCircle, Users, BarChart3, Settings,
   Target, Trophy, Star, ArrowRight, Eye, PlusCircle, MessageSquare,
-  Download, Image as ImageIcon, KeyRound, Bell, Search, LayoutDashboard, PieChart, Camera, BookOpen, ArrowLeft, Activity, Sparkles, Pencil, Calendar, FileText, Edit2
+  Download, Image as ImageIcon, KeyRound, Bell, Search, LayoutDashboard, PieChart, Camera, BookOpen, ArrowLeft, Activity, Sparkles, Pencil, Calendar, FileText, Edit2, Trash2
 } from 'lucide-react';
 import { processAndUploadImage } from '../../lib/imageOptimization';
 import clsx from 'clsx';
@@ -320,6 +320,18 @@ const MentorDashboard = () => {
       alert("Failed to update student. Please try again.");
     } finally {
       setIsSavingMenteeEdit(false);
+    }
+  };
+
+  const handleDeleteMentee = async (id, name) => {
+    if (window.confirm(`Are you sure you want to remove ${name} from your mentees list? This will also remove all their achievement records.`)) {
+      try {
+        await deleteDoc(doc(db, 'students', id));
+        fetchMentorData();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to delete student.");
+      }
     }
   };
 
@@ -996,7 +1008,8 @@ const MentorDashboard = () => {
                             <th className="p-4 text-center font-semibold">Net Score</th>
                             <th className="p-4 text-center font-semibold">Outreach</th>
                             <th className="p-4 text-center font-semibold">Spiritual</th>
-                            <th className="p-4 text-center font-semibold text-right pr-6">Academic</th>
+                            <th className="p-4 text-center font-semibold">Academic</th>
+                            <th className="p-4 text-right pr-6 font-semibold">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -1030,8 +1043,26 @@ const MentorDashboard = () => {
                               <td className="p-4 text-center">
                                 <span className="text-sm font-bold text-amber-600">{menteeMetrics[mentee.id]?.spiritual || 0}%</span>
                               </td>
-                              <td className="p-4 text-center pr-6">
+                              <td className="p-4 text-center">
                                 <span className="text-sm font-bold text-indigo-600">{menteeMetrics[mentee.id]?.academic || 0}%</span>
+                              </td>
+                              <td className="p-4 text-right pr-6">
+                                <div className="flex items-center justify-end gap-1">
+                                  <button 
+                                    onClick={() => setEditingMentee(mentee)}
+                                    className="p-1 text-gray-400 hover:text-brand-blue hover:bg-blue-50 rounded transition-colors"
+                                    title="Edit Profile"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeleteMentee(mentee.id, mentee.fullName)}
+                                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                    title="Delete Student"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           )) : (
@@ -1085,6 +1116,20 @@ const MentorDashboard = () => {
                                   <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[9px] font-bold">{menteeMetrics[mentee.id]?.activities || 0} Outreach</span>
                                   <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded text-[9px] font-bold">{mentee.netScore || 0} Pts</span>
                                 </div>
+                              </div>
+                              <div className="flex items-center gap-1 ml-1">
+                                <button 
+                                  onClick={() => setEditingMentee(mentee)}
+                                  className="p-1.5 text-gray-400 active:text-brand-blue rounded-lg"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteMentee(mentee.id, mentee.fullName)}
+                                  className="p-1.5 text-gray-400 active:text-red-500 rounded-lg"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -1144,13 +1189,22 @@ const MentorDashboard = () => {
                             <h3 className="font-bold text-gray-900 text-sm truncate">{mentee.fullName}</h3>
                             <span className="text-[9px] font-bold text-brand-blue bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100/50 uppercase tracking-tight">{mentee.className}</span>
                           </div>
-                          <button 
-                            onClick={() => setEditingMentee(mentee)}
-                            className="p-1.5 text-gray-400 hover:text-brand-blue hover:bg-blue-50 rounded-lg transition-colors ml-auto"
-                            title="Edit Mentee Profile"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center gap-1 ml-auto">
+                            <button 
+                              onClick={() => setEditingMentee(mentee)}
+                              className="p-1.5 text-gray-400 hover:text-brand-blue hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit Mentee Profile"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteMentee(mentee.id, mentee.fullName)}
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Mentee"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                         
                         <div className="mt-auto space-y-1.5">
