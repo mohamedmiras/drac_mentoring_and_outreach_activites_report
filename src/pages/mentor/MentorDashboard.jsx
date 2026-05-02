@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../lib/firebase';
@@ -298,11 +298,29 @@ const MentorDashboard = () => {
     fetchMentorData();
   }, [effectiveUser]);
 
+  const [uploadingPhotoId, setUploadingPhotoId] = useState(null);
+
+  const handleQuickPhotoUpload = async (e, studentId) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingPhotoId(studentId);
+    try {
+      const photoURL = await processAndUploadImage(file, 'profile');
+      await updateDoc(doc(db, 'students', studentId), { photoURL });
+      fetchMentorData();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to upload photo.");
+    } finally {
+      setUploadingPhotoId(null);
+    }
+  };
+
   const handleEditMenteeSave = async (updatedData) => {
     if (!editingMentee) return;
     setIsSavingMenteeEdit(true);
     try {
-      await updateDoc(doc(db, 'students', editingMentee.id), {
+      const payload = {
         fullName: updatedData.fullName,
         admissionNumber: updatedData.admissionNumber,
         className: updatedData.className,
@@ -312,7 +330,13 @@ const MentorDashboard = () => {
         password: updatedData.password || '',
         place: updatedData.place || '',
         email: updatedData.email || '',
-      });
+      };
+      
+      if (updatedData.photoURL) {
+        payload.photoURL = updatedData.photoURL;
+      }
+      
+      await updateDoc(doc(db, 'students', editingMentee.id), payload);
       setEditingMentee(null);
       fetchMentorData(); // Refresh data
     } catch (error) {
@@ -381,9 +405,12 @@ const MentorDashboard = () => {
   ];
 
   const isCoordinator = userData?.username === 'yasir' || mentorProfile.name?.toLowerCase().includes('yasir');
-  if (isCoordinator) {
-    tabs.unshift({ id: 'coordinator', label: 'Coordinator Hub', icon: FileText });
-  }
+  // Coordinator Hub removed from bottom tabs per user request
+  // if (isCoordinator) {
+  //   tabs.unshift({ id: 'coordinator', label: 'Coordinator Hub', icon: FileText });
+  // }
+
+
 
   const [allStudents, setAllStudents] = useState([]);
   const [allMentors, setAllMentors] = useState([]);
@@ -1009,7 +1036,6 @@ const MentorDashboard = () => {
                             <th className="p-4 text-center font-semibold">Outreach</th>
                             <th className="p-4 text-center font-semibold">Spiritual</th>
                             <th className="p-4 text-center font-semibold">Academic</th>
-                            <th className="p-4 text-right pr-6 font-semibold">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -1045,24 +1071,6 @@ const MentorDashboard = () => {
                               </td>
                               <td className="p-4 text-center">
                                 <span className="text-sm font-bold text-indigo-600">{menteeMetrics[mentee.id]?.academic || 0}%</span>
-                              </td>
-                              <td className="p-4 text-right pr-6">
-                                <div className="flex items-center justify-end gap-1">
-                                  <button 
-                                    onClick={() => setEditingMentee(mentee)}
-                                    className="p-1 text-gray-400 hover:text-brand-blue hover:bg-blue-50 rounded transition-colors"
-                                    title="Edit Profile"
-                                  >
-                                    <Edit2 className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button 
-                                    onClick={() => handleDeleteMentee(mentee.id, mentee.fullName)}
-                                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                                    title="Delete Student"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
                               </td>
                             </tr>
                           )) : (
@@ -1117,20 +1125,6 @@ const MentorDashboard = () => {
                                   <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded text-[9px] font-bold">{mentee.netScore || 0} Pts</span>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-1 ml-1">
-                                <button 
-                                  onClick={() => setEditingMentee(mentee)}
-                                  className="p-1.5 text-gray-400 active:text-brand-blue rounded-lg"
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                </button>
-                                <button 
-                                  onClick={() => handleDeleteMentee(mentee.id, mentee.fullName)}
-                                  className="p-1.5 text-gray-400 active:text-red-500 rounded-lg"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
                             </div>
                           </div>
                         );
@@ -1182,8 +1176,17 @@ const MentorDashboard = () => {
                         className="bg-white rounded-xl border border-gray-200 p-3.5 shadow-sm hover:shadow-md transition-shadow group flex flex-col"
                       >
                         <div className="flex items-center gap-3 mb-3">
-                          <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+                          <div className="relative w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 shadow-inner group">
+                            {uploadingPhotoId === mentee.id && (
+                              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              </div>
+                            )}
                             {mentee.photoURL ? <img src={mentee.photoURL} alt="" className="w-full h-full object-cover" /> : <UserCircle className="w-6 h-6 text-gray-400" />}
+                            <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity z-10">
+                              <Camera className="w-4 h-4 text-white" />
+                              <input type="file" className="sr-only" accept="image/jpeg, image/png, image/webp" onChange={(e) => handleQuickPhotoUpload(e, mentee.id)} disabled={uploadingPhotoId === mentee.id} />
+                            </label>
                           </div>
                           <div className="min-w-0 flex-1">
                             <h3 className="font-bold text-gray-900 text-sm truncate">{mentee.fullName}</h3>
@@ -1529,7 +1532,10 @@ const MentorDashboard = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-6 gap-y-10">
+                  {/* Removed Global Scorecard per user request to show stats mentor-wise */}
+
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 gap-y-6 sm:gap-y-8">
                     {allMentors.filter(m => m.username !== userData?.username).map((mentor, i) => {
                       const mentorExtras = {
                         "anversadiquhudawi": { name: "Usthad Anvar Sadiq Hudawi", place: "Tharayiital" },
@@ -1546,6 +1552,21 @@ const MentorDashboard = () => {
                                     (mUsername.includes("anversadiq") ? mentorExtras["anversadiquhudawi"] : null) ||
                                     { name: getNickname(mentor.name), place: "Mentor" };
 
+                      // Calculate Mentor-specific metrics
+                      const mStudents = allStudents.filter(s => s.mentorUsername === mentor.username);
+                      const mNetScore = mStudents.reduce((sum, s) => sum + (s.netScore || 0), 0);
+                      const globalNetScore = allStudents.reduce((sum, s) => sum + (s.netScore || 0), 0);
+                      const mCampusShare = globalNetScore > 0 ? ((mNetScore / globalNetScore) * 100).toFixed(1) : 0;
+                      
+                      const mStudentIds = mStudents.map(s => s.id);
+                      const mOutreach = allAchievements.filter(a => mStudentIds.includes(a.studentId) && a.isOutreach && a.outreachStatus === 'Accepted').length;
+                      
+                      // For Mentor Rating, we use a simplified version: (Avg Net Score * 0.4) + Meetings (similar to the mentor dashboard formula but without academic/spiritual specifics since they require deep parsing here)
+                      const mAvgNetScore = mStudents.length > 0 ? (mNetScore / mStudents.length) : 0;
+                      const mTotalMeetings = mStudents.reduce((sum, s) => sum + (s.meetingsCount || 0), 0);
+                      const rawRating = (mAvgNetScore * 0.40) + (mTotalMeetings * 3);
+                      const mRating = rawRating.toFixed(1);
+
                       return (
                         <motion.div 
                           key={mentor.username} 
@@ -1554,9 +1575,9 @@ const MentorDashboard = () => {
                           transition={{ delay: i * 0.05 }}
                           whileHover={{ y: -5 }}
                           onClick={() => handleImpersonate(mentor)}
-                          className="group cursor-pointer"
+                          className="group cursor-pointer flex flex-col h-full bg-white rounded-2xl sm:rounded-[2rem] p-2 sm:p-3 shadow-sm border border-gray-100 hover:shadow-xl transition-all"
                         >
-                           <div className="relative aspect-square rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden bg-gray-50 border-2 md:border-4 border-white shadow-lg group-hover:shadow-2xl group-hover:border-indigo-50 transition-all duration-500">
+                           <div className="relative aspect-square rounded-xl sm:rounded-[1.5rem] overflow-hidden bg-gray-50 shadow-inner">
                               {mentor.photoURL ? (
                                 <img src={mentor.photoURL} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                               ) : (
@@ -1564,19 +1585,38 @@ const MentorDashboard = () => {
                                   <UserCircle className="w-1/3 h-1/3 text-gray-200" />
                                 </div>
                               )}
-                              {/* Simple Overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-6">
-                                 <span className="text-[10px] font-bold text-white px-4 py-2 bg-white/20 backdrop-blur-md rounded-full border border-white/30">
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-2 sm:pb-4">
+                                 <span className="text-[8px] sm:text-[10px] font-bold text-white px-3 sm:px-4 py-1 sm:py-1.5 bg-brand-blue rounded-full shadow-lg">
                                     Access portal
                                  </span>
                               </div>
                            </div>
                            
-                           <div className="mt-3 md:mt-4 text-center">
-                              <h4 className="font-bold text-black text-[10px] md:text-sm tracking-tight leading-tight">{extra.name}</h4>
-                              <p className="text-[9px] md:text-[11px] text-gray-400 font-medium mt-0.5">{extra.place}</p>
+                           <div className="mt-2 sm:mt-4 text-center flex-1 flex flex-col">
+                              <h4 className="font-black text-gray-900 text-[11px] sm:text-sm tracking-tight leading-tight mb-0.5">{extra.name}</h4>
+                              <p className="text-[8px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2 sm:mb-3">{extra.place}</p>
+                              
+                              <div className="mt-auto grid grid-cols-2 gap-1 sm:gap-1.5">
+                                 <div className="flex flex-col items-center p-1 sm:p-2 bg-blue-50/50 rounded-lg sm:rounded-xl border border-blue-100/50 transition-colors group-hover:bg-blue-50">
+                                    <span className="text-[7px] sm:text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Points</span>
+                                    <span className="text-[10px] sm:text-xs font-black text-blue-700">{mNetScore.toFixed(0)}</span>
+                                 </div>
+                                 <div className="flex flex-col items-center p-1 sm:p-2 bg-violet-50/50 rounded-lg sm:rounded-xl border border-violet-100/50 transition-colors group-hover:bg-violet-50">
+                                    <span className="text-[7px] sm:text-[8px] font-black text-violet-400 uppercase tracking-widest mb-0.5">Share</span>
+                                    <span className="text-[10px] sm:text-xs font-black text-violet-700">{mCampusShare}%</span>
+                                 </div>
+                                 <div className="flex flex-col items-center p-1 sm:p-2 bg-emerald-50/50 rounded-lg sm:rounded-xl border border-emerald-100/50 transition-colors group-hover:bg-emerald-50">
+                                    <span className="text-[7px] sm:text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">Outreach</span>
+                                    <span className="text-[10px] sm:text-xs font-black text-emerald-700">{mOutreach}</span>
+                                 </div>
+                                 <div className="flex flex-col items-center p-1 sm:p-2 bg-amber-50/50 rounded-lg sm:rounded-xl border border-amber-100/50 transition-colors group-hover:bg-amber-50">
+                                    <span className="text-[7px] sm:text-[8px] font-black text-amber-400 uppercase tracking-widest mb-0.5">Rating</span>
+                                    <span className="text-[10px] sm:text-xs font-black text-amber-700">{mRating}</span>
+                                 </div>
+                              </div>
                            </div>
                         </motion.div>
+
                       );
                     })}
                   </div>

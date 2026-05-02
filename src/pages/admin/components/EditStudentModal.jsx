@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Hash, School, ShieldCheck, Calendar, Lock, ChevronDown, Activity, Mail } from 'lucide-react';
+import { X, User, Hash, School, ShieldCheck, Calendar, Lock, ChevronDown, Activity, Mail, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../../../lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { processAndUploadImage } from '../../../lib/imageOptimization';
 
 const EditStudentModal = ({ isOpen, onClose, onSave, studentData, isSaving }) => {
   const [formData, setFormData] = useState({
@@ -18,6 +19,8 @@ const EditStudentModal = ({ isOpen, onClose, onSave, studentData, isSaving }) =>
   });
   
   const [mentors, setMentors] = useState([]);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const fetchMentors = async () => {
@@ -44,16 +47,33 @@ const EditStudentModal = ({ isOpen, onClose, onSave, studentData, isSaving }) =>
         dob: studentData.dob || '',
         password: studentData.password || '',
         place: studentData.place || '',
-        email: studentData.email || ''
+        email: studentData.email || '',
+        photoURL: studentData.photoURL || ''
       });
     }
   }, [studentData]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+    let finalData = { ...formData };
+    
+    if (photoFile) {
+      setIsUploading(true);
+      try {
+        const photoURL = await processAndUploadImage(photoFile, 'profile');
+        finalData.photoURL = photoURL;
+      } catch (err) {
+        console.error("Image upload failed", err);
+        alert("Failed to upload profile image.");
+        setIsUploading(false);
+        return;
+      }
+      setIsUploading(false);
+    }
+    
+    onSave(finalData);
   };
 
   const inputClasses = "w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none transition-all text-gray-700 disabled:opacity-50";
@@ -211,12 +231,44 @@ const EditStudentModal = ({ isOpen, onClose, onSave, studentData, isSaving }) =>
                   <input
                     type="text"
                     required
-                    disabled={isSaving}
+                    disabled={isSaving || isUploading}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className={inputClasses}
                     placeholder="Student login password"
                   />
+                </div>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className={labelClasses}>Profile Photo</label>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-200 border-dashed rounded-xl hover:border-brand-blue transition bg-white/50">
+                  <div className="space-y-1 text-center w-full">
+                    
+                    {photoFile ? (
+                      <div className="mx-auto w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-100 mb-3">
+                        <img src={URL.createObjectURL(photoFile)} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
+                    ) : formData.photoURL ? (
+                      <div className="mx-auto w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-100 mb-3">
+                        <img src={formData.photoURL} alt="Current" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                    )}
+
+                    <div className="flex text-sm text-gray-600 justify-center">
+                      <label className="relative cursor-pointer rounded-md font-medium text-brand-blue hover:text-blue-600 focus-within:outline-none">
+                        <span>{formData.photoURL || photoFile ? 'Change photo' : 'Upload new photo'}</span>
+                        <input type="file" className="sr-only" accept="image/jpeg, image/png, image/webp" onChange={(e) => setPhotoFile(e.target.files[0])} disabled={isSaving || isUploading} />
+                      </label>
+                    </div>
+                    {photoFile ? (
+                      <p className="text-xs font-medium text-emerald-600 mt-2 truncate max-w-[200px] mx-auto">{photoFile.name}</p>
+                    ) : (
+                      <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-wider">JPEG/PNG up to 1MB</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -232,13 +284,13 @@ const EditStudentModal = ({ isOpen, onClose, onSave, studentData, isSaving }) =>
               </button>
               <button
                 type="submit"
-                disabled={isSaving}
+                disabled={isSaving || isUploading}
                 className="flex-1 py-3 bg-brand-blue text-white rounded-xl font-bold hover:bg-brand-lightBlue transition-all shadow-lg shadow-brand-blue/20 disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {isSaving ? (
+                {(isSaving || isUploading) ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Saving...
+                    {isUploading ? 'Uploading...' : 'Saving...'}
                   </>
                 ) : 'Save Changes'}
               </button>

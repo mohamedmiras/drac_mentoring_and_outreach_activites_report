@@ -152,7 +152,7 @@ const ClassView = () => {
     if (!editingStudent) return;
     setIsSavingEdit(true);
     try {
-      await updateDoc(doc(db, 'students', editingStudent.id), {
+      const payload = {
         fullName: updatedData.fullName,
         admissionNumber: updatedData.admissionNumber,
         className: updatedData.className,
@@ -162,7 +162,11 @@ const ClassView = () => {
         password: updatedData.password || '',
         place: updatedData.place || '',
         email: updatedData.email || '',
-      });
+      };
+      if (updatedData.photoURL) {
+        payload.photoURL = updatedData.photoURL;
+      }
+      await updateDoc(doc(db, 'students', editingStudent.id), payload);
       setEditingStudent(null);
       fetchStudents(); // Refresh data
     } catch (error) {
