@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ADMIN CHECK
+    // Only users logged in via Firebase Auth (Admins in this app) have request.auth
+    function isAdmin() {
+      return request.auth != null;
+    }
+
+    // =========================================================================
+    // WARNING: ARCHITECTURE LIMITATION
+    // Because Students and Mentors log in using custom localStorage sessions 
+    // rather than Firebase Authentication, they appear to Firestore as 
+    // "unauthenticated" users. 
+    // 
+    // To allow Students to view/add achievements and Mentors to view/edit students,
+    // these collections currently MUST allow unauthenticated reads and writes.
+    // 
+    // For true security, you must migrate Students and Mentors to Firebase Auth.
+    // =========================================================================
+
+    match /students/{studentId} {
+      // Allowed for everyone so the custom login query can check passwords
+      allow read: if true; 
+      
+      // Ideally only Admins and Mentors should edit students.
+      // Currently open to allow Student Auto-Heal and Mentor edits.
+      allow write: if true; 
+    }
+
+    match /mentors/{mentorId} {
+      // Allowed for everyone so the custom login query can check passwords
+      allow read: if true; 
+      allow write: if isAdmin();
+    }
+
+    match /achievements/{achievementId} {
+      // Students and Mentors need to read and write achievements
+      allow read, write: if true; 
+    }
+
+    match /classes/{classId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /opportunities/{oppId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Default deny for anything else
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
