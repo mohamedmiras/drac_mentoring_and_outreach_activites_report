@@ -926,7 +926,7 @@ const MentorDashboard = () => {
                               </div>
                             </div>
                             <h4 className="font-bold text-gray-900 text-sm line-clamp-1">{mentee.fullName}</h4>
-                            <p className="text-xs text-gray-500 font-medium mb-3">{mentee.className}</p>
+                            <p className="text-[10px] text-gray-500 font-medium mb-3">{mentee.className}</p>
                             <div className="bg-gray-50 px-3 py-1 rounded-md border border-gray-100">
                               <span className="text-sm font-black text-brand-blue">{mentee.netScore || 0} pts</span>
                             </div>
@@ -1030,7 +1030,7 @@ const MentorDashboard = () => {
                                 </div>
                               </td>
                               <td className="p-4">
-                                <p className="font-bold text-gray-700 text-sm">{getShortClass(mentee.className)}</p>
+                                <p className="font-bold text-gray-700 text-xs">{getShortClass(mentee.className)}</p>
                               </td>
                               <td className="p-4 text-center">
                                 <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -1100,7 +1100,7 @@ const MentorDashboard = () => {
                               </div>
                               <div className="min-w-0">
                                 <h3 className="font-medium text-gray-900 text-[11px] truncate leading-tight mb-0.5">{mentee.fullName}</h3>
-                                <div className="flex items-center gap-1.5 text-[9px] text-gray-500 font-extrabold uppercase tracking-tight">
+                                <div className="flex items-center gap-1.5 text-[8px] text-gray-500 font-extrabold uppercase tracking-tight">
                                   <span className="bg-gray-100 px-1 py-0.5 rounded">{getShortClass(mentee.className)}</span>
                                 </div>
                               </div>
@@ -1187,7 +1187,7 @@ const MentorDashboard = () => {
                           </div>
                           <div className="min-w-0 flex-1">
                             <h3 className="font-bold text-gray-900 text-sm truncate">{mentee.fullName}</h3>
-                            <span className="text-[9px] font-bold text-brand-blue bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100/50 uppercase tracking-tight">{mentee.className}</span>
+                            <span className="text-[8px] font-bold text-brand-blue bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100/50 uppercase tracking-tight">{mentee.className}</span>
                           </div>
                           <div className="flex items-center gap-1 ml-auto">
                             <button 

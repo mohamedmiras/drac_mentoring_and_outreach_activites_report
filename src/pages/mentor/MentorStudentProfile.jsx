@@ -314,7 +314,7 @@ const MentorStudentProfile = () => {
               <div className="grid grid-cols-2 gap-4 text-left border-t border-gray-100 pt-4 mt-4">
                 <div>
                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Class</p>
-                  <p className="font-bold text-brand-blue text-base">{getShortClassName(student.className)}</p>
+                  <p className="font-bold text-brand-blue text-sm">{getShortClassName(student.className)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Mentor</p>
@@ -483,7 +483,7 @@ const MentorStudentProfile = () => {
                       <div className="min-w-0">
                         <h2 className="text-2xl font-black text-gray-900 leading-tight truncate">{student.fullName}</h2>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[10px] font-black text-brand-blue uppercase tracking-widest bg-brand-blue/5 px-2 py-0.5 rounded-md border border-brand-blue/10">
+                          <span className="text-[9px] font-black text-brand-blue uppercase tracking-widest bg-brand-blue/5 px-2 py-0.5 rounded-md border border-brand-blue/10">
                             Class: {student.className}
                           </span>
                         </div>
