@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { db } from '../../lib/firebase';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { FileText, Download, Filter, Calendar } from 'lucide-react';
+import { collection, getDocs } from 'firebase/firestore';
+import { FileText, Filter, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useSettings } from '../../contexts/SettingsContext';
 import { getAchievementMarks } from '../../lib/scoring';
 
 const Reports = () => {
+  const { missionName, loadingSettings } = useSettings();
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [studentsMap, setStudentsMap] = useState({});
@@ -148,10 +150,11 @@ const Reports = () => {
           return s && s.className === selectedClass;
         });
       }
-      if (selectedActivityFilter === 'Mission 100') {
-        fetched = fetched.filter(a => a.isMission100);
-      } else if (selectedActivityFilter === 'Outreach') {
+      if (selectedActivityFilter === 'Outreach Activities') {
         fetched = fetched.filter(a => a.isOutreach);
+      }
+      if (selectedActivityFilter === missionName || selectedActivityFilter === 'Mission 100') {
+        fetched = fetched.filter(a => a.isMission100);
       }
 
       // Sort locally: 
@@ -404,8 +407,8 @@ const Reports = () => {
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Activity Category (Optional)</label>
                 <select value={selectedActivityFilter} onChange={(e) => setSelectedActivityFilter(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-blue/30 outline-none bg-slate-50 hover:bg-white transition-all shadow-sm font-bold text-slate-700">
                   <option value="All">All Activities</option>
-                  <option value="Mission 100">Mission 100</option>
-                  <option value="Outreach">Outreach Activities</option>
+                  <option value="Outreach Activities">Outreach Activities</option>
+                  <option value={missionName}>{missionName}</option>
                 </select>
               </div>
 

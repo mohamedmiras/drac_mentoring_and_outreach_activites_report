@@ -42,6 +42,7 @@ const AdminLayout = ({ children }) => {
     { label: 'Reports', icon: FileText, path: '/admin/reports' },
     { label: 'Outreach Records', icon: Globe, path: '/admin/outreach' },
     { label: 'Opportunities', icon: Users, path: '/admin/opportunities' },
+    { label: 'Settings', icon: ShieldCheck, path: '/admin/settings' },
   ];
 
   return (

@@ -3,17 +3,21 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { db } from '../../lib/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, deleteDoc, increment } from 'firebase/firestore';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getAchievementMarks, calculateEntryScore } from '../../lib/scoring';
-import { ArrowLeft, User, Award, Plus, Minus, Calendar, Trash2, Camera, Star, Trophy, Target, PieChart, Eye, EyeOff, Pencil, School, ShieldCheck, Lock, Languages, Activity, Globe } from 'lucide-react';
+import { User, Award, Calendar, ChevronLeft, Trash2, Camera, Star, Trophy, PieChart, Languages, Activity, Target, Globe, LogOut, CheckCircle, Pencil, Download, Key, Shield, UserCircle, Sparkles, BookOpen, ArrowLeft } from 'lucide-react';
 import { processAndUploadImage } from '../../lib/imageOptimization';
+import { useSettings } from '../../contexts/SettingsContext';
 import AddAchievementModal from './components/AddAchievementModal';
 import EditStudentModal from './components/EditStudentModal';
 import confetti from 'canvas-confetti';
+import clsx from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 const StudentAdminProfile = () => {
   const { studentId } = useParams();
   const navigate = useNavigate();
+  const { missionName, missionTarget, loadingSettings } = useSettings();
   
   const [student, setStudent] = useState(null);
   const [achievements, setAchievements] = useState([]);
@@ -28,10 +32,17 @@ const StudentAdminProfile = () => {
   const [updatingPhoto, setUpdatingPhoto] = useState(false);
   const [isSavingStudent, setIsSavingStudent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [recordFilter, setRecordFilter] = useState('Total Achievements');
 
   useEffect(() => {
     fetchStudentAndAchievements();
   }, [studentId]);
+
+  useEffect(() => {
+    if (recordFilter === 'Mission 100' && missionName !== 'Mission 100') {
+      setRecordFilter(missionName);
+    }
+  }, [missionName, recordFilter]);
 
   const getShortClassName = (className) => {
     if (!className) return 'N/A';
@@ -42,6 +53,15 @@ const StudentAdminProfile = () => {
     if (name.includes('degree first year')) return 'D1';
     return className;
   };
+
+  const filteredAchievements = React.useMemo(() => {
+    return achievements.filter(ach => 
+      recordFilter === 'Total Achievements' || 
+      (recordFilter === 'Outreach Activities' && ach.isOutreach) || 
+      (recordFilter === missionName && ach.isMission100) ||
+      (recordFilter === 'Mission 100' && ach.isMission100)
+    );
+  }, [achievements, recordFilter, missionName]);
 
   const fetchStudentAndAchievements = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -61,7 +81,6 @@ const StudentAdminProfile = () => {
       const achData = [];
       querySnapshot.forEach((d) => achData.push({ id: d.id, ...d.data() }));
       
-      // Recalculate achievement marks if missing or outdated, and sort
       const processedAchData = achData.map(ach => ({
         ...ach,
         totalMarks: getAchievementMarks(ach)
@@ -75,7 +94,6 @@ const StudentAdminProfile = () => {
       
       setAchievements(processedAchData);
 
-      // --- Analytics Calculations ---
       let studentsList = cachedStudents;
       if (!studentsList) {
         const allStudentsSnap = await getDocs(collection(db, 'students'));
@@ -91,7 +109,6 @@ const StudentAdminProfile = () => {
       const currentTotalStars = processedAchData.reduce((acc, curr) => acc + (Number(curr.stars) || 0), 0);
       const currentNetScore = Number(Math.max(0, currentAchievementTotal - (docSnap.data().minusPoints || 0)).toFixed(2));
 
-      // Auto-Heal out of sync scores
       if (docSnap.data().netScore !== currentNetScore || docSnap.data().totalStars !== currentTotalStars || docSnap.data().plusPoints !== currentAchievementTotal) {
         await updateDoc(docRef, {
           plusPoints: currentAchievementTotal,
@@ -142,7 +159,6 @@ const StudentAdminProfile = () => {
   };
 
   const adjustPenalty = async (amount) => {
-    // Optimistic Update
     setStudent(prev => ({
       ...prev,
       minusPoints: (prev.minusPoints || 0) + amount,
@@ -163,11 +179,9 @@ const StudentAdminProfile = () => {
   const handleSaveAchievement = async (payload) => {
     try {
       if (editingAchievement) {
-        // --- EDIT MODE ---
         const achRef = doc(db, 'achievements', editingAchievement.id);
         await updateDoc(achRef, payload);
 
-        // Adjust student scores based on diff
         const oldMarks = Number(getAchievementMarks(editingAchievement)) || 0;
         const newMarks = Number(payload.totalMarks) || 0;
         const markDiff = newMarks - oldMarks;
@@ -184,7 +198,6 @@ const StudentAdminProfile = () => {
           });
         }
       } else {
-        // --- ADD MODE ---
         await addDoc(collection(db, 'achievements'), {
           ...payload,
           studentId,
@@ -193,7 +206,6 @@ const StudentAdminProfile = () => {
           mentorName: student.mentorName || 'Unknown Mentor'
         });
 
-        // Add points automatically via atomic increment (Strictly casted to Number)
         const safeMarks = Number(payload.totalMarks) || 0;
         const safeStars = Number(payload.stars) || 0;
 
@@ -203,7 +215,6 @@ const StudentAdminProfile = () => {
           totalStars: increment(safeStars)
         });
 
-        // Trigger Ribbon Splash Animation
         const duration = 2500;
         const end = Date.now() + duration;
 
@@ -275,7 +286,6 @@ const StudentAdminProfile = () => {
     if (confirm("Are you sure you want to delete this achievement? Points and Stars will be deducted.")) {
       await deleteDoc(doc(db, 'achievements', ach.id));
       
-      // Reverse internal math
       if (ach.marks || ach.stars || ach.totalMarks) {
         const marksToDeduct = Number(getAchievementMarks(ach)) || 0;
         const starsToDeduct = Number(ach.stars) || 0;
@@ -303,6 +313,7 @@ const StudentAdminProfile = () => {
   if (!student) return null;
 
   const outreachCount = achievements.filter(ach => ach.isOutreach).length;
+  const mission100Count = achievements.filter(ach => ach.isMission100).length;
 
   return (
     <AdminLayout>
@@ -313,7 +324,6 @@ const StudentAdminProfile = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Profile Card */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-center p-6 relative">
             <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-brand-blue to-brand-green opacity-20" />
@@ -359,21 +369,6 @@ const StudentAdminProfile = () => {
                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Place</p>
                 <p className="font-medium text-gray-800 text-sm">{student.place || 'Not Specified'}</p>
               </div>
-              <div className="col-span-2 pt-2">
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Email</p>
-                <p className="font-medium text-gray-800 text-sm">{student.email || 'Not Specified'}</p>
-              </div>
-              <div className="col-span-2 pt-2">
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Password</p>
-                <div className="flex items-center">
-                  <p className="font-mono text-gray-800 text-sm bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
-                    {showPassword ? (student.password || 'Not Set') : '••••••••'}
-                  </p>
-                  <button onClick={() => setShowPassword(!showPassword)} className="ml-2 text-gray-400 hover:text-brand-blue transition">
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -391,7 +386,6 @@ const StudentAdminProfile = () => {
             </h3>
             
             <div className="flex flex-col gap-3 mb-6 relative z-10">
-              {/* Net Score */}
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -410,7 +404,6 @@ const StudentAdminProfile = () => {
                 </div>
               </motion.div>
               
-              {/* Total Stars */}
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -428,92 +421,47 @@ const StudentAdminProfile = () => {
                   <Star className="w-4.5 h-4.5 text-amber-500" />
                 </div>
               </motion.div>
-
-              {/* Outreach Activities */}
-              <motion.div 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.35 }}
-                className="bg-emerald-100/60 rounded-2xl p-3.5 border border-emerald-200/50 shadow-sm flex justify-between items-center group hover:bg-white hover:border-emerald-200 transition-all relative z-10"
-              >
-                <div className="min-w-0">
-                  <p className="text-[11px] font-bold text-emerald-700/70 mb-0.5 uppercase">Outreach Activities</p>
-                  <div className="flex items-center gap-1">
-                    <span className="text-base font-bold text-emerald-900 tracking-tight">{outreachCount}</span>
+            </div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-3xl p-6 relative overflow-hidden shadow-sm border border-gray-100 group hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-orange-100/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="flex justify-between items-start mb-8 relative z-10">
+                <div>
+                  <h3 className="text-gray-500 font-medium mb-1">{loadingSettings ? 'Loading...' : missionName}</h3>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-black text-gray-900 tracking-tight">{mission100Count}</span>
+                    <span className="text-lg font-bold text-gray-400">/ {missionTarget}</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white shadow-sm border border-emerald-100 transition-all">
-                  <Globe className="w-4.5 h-4.5 text-emerald-500" />
+                <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-inner">
+                  <Target className="w-8 h-8 text-orange-500" />
                 </div>
-              </motion.div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="bg-gray-50 rounded-[16px] p-4 border border-gray-100 shadow-sm hover:bg-white transition-all duration-300 group/stat"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                   <div className="w-6 h-6 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-brand-blue">
-                     <Trophy className="w-3 h-3" />
-                   </div>
-                   <p className="text-[11px] font-bold text-gray-500">Class Rank</p>
+              </div>
+              
+              <div className="space-y-3 relative z-10">
+                <div className="flex justify-between text-xs font-bold text-gray-600 uppercase tracking-widest">
+                  <span>Progress</span>
+                  <span className="text-orange-500">{Math.min(Math.round((mission100Count / (missionTarget || 100)) * 100), 100)}%</span>
                 </div>
-                <p className="text-base font-bold text-gray-900 tracking-tight ml-1">{analytics.classRank} <span className="text-[10px] font-medium text-gray-400">/ {analytics.classTotal}</span></p>
-              </motion.div>
-
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="bg-gray-50 rounded-[16px] p-4 border border-gray-100 shadow-sm hover:bg-white transition-all duration-300 group/stat"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                   <div className="w-6 h-6 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-brand-blue">
-                     <PieChart className="w-3 h-3" />
-                   </div>
-                   <p className="text-[11px] font-bold text-gray-500">Campus Rating</p>
+                <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner relative">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min((mission100Count / (missionTarget || 100)) * 100, 100)}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-orange-400 to-orange-500 rounded-full shadow-md"
+                  ></motion.div>
                 </div>
-                <p className="text-base font-bold text-gray-900 tracking-tight ml-1">{analytics.globalPercentile}%</p>
-              </motion.div>
-            </div>
-
-
+              </div>
+            </motion.div>
           </motion.div>
         </div>
 
-        {/* Achievements Section */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-
-          {analytics.chartData.length > 0 && (
-            <div className="bg-white rounded-3xl shadow-xl shadow-blue-500/5 border border-gray-100 p-6 lg:p-8">
-              <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
-                <PieChart className="w-5 h-5 text-brand-blue" /> 
-                Work Distribution
-              </h3>
-              <div className="space-y-5">
-                {analytics.chartData.map((data, i) => (
-                  <div key={i} className="flex flex-col gap-2 group">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-bold text-gray-700">{data.type}</span>
-                      <span className="font-black text-gray-400 bg-gray-50 px-2.5 py-0.5 rounded-md border border-gray-100">{data.count}</span>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden shadow-inner">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${data.percentage}%` }}
-                        transition={{ duration: 1, delay: i * 0.1, ease: 'easeOut' }}
-                        className="bg-gradient-to-r from-brand-blue to-brand-lightBlue h-full rounded-full group-hover:brightness-110 transition-all"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="bg-white rounded-3xl shadow-xl shadow-blue-500/5 border border-gray-100 overflow-hidden flex flex-col h-full">
             {/* Highlighted Student Info Header */}
             <div className="bg-gradient-to-br from-blue-100/40 via-blue-50/20 to-white p-6 border-b border-blue-100">
@@ -563,9 +511,9 @@ const StudentAdminProfile = () => {
                   <p className="text-lg font-medium text-gray-500">No achievements added yet.</p>
                 </div>
               ) : (
-              <div className="flex overflow-x-auto snap-x snap-mandatory pb-6 -mx-6 px-6 gap-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] sm:flex-col sm:space-y-8 sm:overflow-visible sm:pb-0 sm:mx-0 sm:px-0 sm:gap-0 relative sm:before:absolute sm:before:inset-0 sm:before:left-6 sm:before:-translate-x-px sm:before:h-full sm:before:w-0.5 sm:before:bg-gradient-to-b sm:before:from-transparent sm:before:via-gray-200 sm:before:to-transparent">
+              <div className="flex flex-col space-y-6 sm:space-y-8 sm:overflow-visible sm:pb-0 sm:mx-0 sm:px-0 sm:gap-0 relative sm:before:absolute sm:before:inset-0 sm:before:left-6 sm:before:-translate-x-px sm:before:h-full sm:before:w-0.5 sm:before:bg-gradient-to-b sm:before:from-transparent sm:before:via-gray-200 sm:before:to-transparent">
                 {achievements.map((ach) => (
-                  <div key={ach.id} className="relative flex items-start group w-[85vw] shrink-0 snap-center sm:w-auto sm:shrink sm:snap-align-none">
+                  <div key={ach.id} className="relative flex items-start group w-full shrink-0 sm:w-auto sm:shrink sm:snap-align-none">
                     
                     {/* Timeline Dot */}
                     <div className="hidden sm:flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full border-4 border-white bg-gray-50 text-gray-400 shadow shrink-0 absolute left-0 group-hover:bg-brand-blue group-hover:text-white transition-colors duration-300 z-10">
@@ -580,7 +528,7 @@ const StudentAdminProfile = () => {
                       <div className="flex justify-between items-start mb-0.5 relative z-10">
                         <h4 className="text-lg font-black text-gray-900 leading-tight pr-8 flex items-center gap-2">
                           {ach.type}
-                          {ach.isMission100 && <img src="/mission100-logo.png" alt="Mission 100" className="w-5 h-5 object-contain" title="Mission 100" />}
+                          {ach.isMission100 && <img src="/mission100-logo.png" alt={missionName} className="w-5 h-5 object-contain" title={missionName} />}
                           {ach.isOutreach && <Globe className="w-4 h-4 text-brand-blue" title="Outreach Activity" />}
                         </h4>
                         <div className="flex gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">

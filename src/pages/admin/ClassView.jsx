@@ -28,23 +28,27 @@ const ClassView = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
-  const MENTORS = [
-    "Usthad Abu Shammas Rafeeq Faisy",
-    "Usthad Thoyyib Hudawi",
-    "Usthad Yasir Hudawi",
-    "Usthad Salman Hudawi",
-    "Usthad Zakariya Hudawi",
-    "Usthad Numan Hudawi",
-    "Usthad Muhsin MC Hudawi",
-    "Usthad Rafi Hudawi",
-    "Usthad Anver Sadiq Hudawi"
-  ];
+  const [mentorsList, setMentorsList] = useState([]);
+
+  useEffect(() => {
+    const fetchMentorsList = async () => {
+      try {
+        const snap = await getDocs(collection(db, 'mentors'));
+        const mList = [];
+        snap.forEach(d => mList.push({ id: d.id, ...d.data() }));
+        setMentorsList(mList);
+      } catch (err) {
+        console.error("Failed to fetch mentors", err);
+      }
+    };
+    fetchMentorsList();
+  }, []);
 
   const [newStudent, setNewStudent] = useState({
     fullName: '',
     admissionNumber: '',
     password: '',
-    mentorName: '',
+    mentorUsername: '',
     classId: className,
     dob: '',
     place: '',
@@ -94,12 +98,15 @@ const ClassView = () => {
       }
 
       const selectedClassNameName = CLASS_NAMES[newStudent.classId] || 'Unknown Class';
+      const selectedMentor = mentorsList.find(m => m.username === newStudent.mentorUsername);
+      const mentorName = selectedMentor ? selectedMentor.name : '';
 
       await addDoc(collection(db, 'students'), {
         fullName: newStudent.fullName,
         admissionNumber: newStudent.admissionNumber,
         password: newStudent.password,
-        mentorName: newStudent.mentorName,
+        mentorName: mentorName,
+        mentorUsername: newStudent.mentorUsername,
         classId: newStudent.classId,
         className: selectedClassNameName,
         dob: newStudent.dob,
@@ -113,7 +120,7 @@ const ClassView = () => {
       });
 
       setIsModalOpen(false);
-      setNewStudent({ fullName: '', admissionNumber: '', password: '', mentorName: '', classId: className, dob: '', place: '', email: '' });
+      setNewStudent({ fullName: '', admissionNumber: '', password: '', mentorUsername: '', classId: className, dob: '', place: '', email: '' });
       setPhotoFile(null);
       fetchStudents(); // Refresh list
     } catch (error) {
@@ -385,10 +392,10 @@ const ClassView = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Mentor Selection</label>
                   <select required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue outline-none bg-white"
-                    value={newStudent.mentorName} onChange={e => setNewStudent({...newStudent, mentorName: e.target.value})}>
+                    value={newStudent.mentorUsername} onChange={e => setNewStudent({...newStudent, mentorUsername: e.target.value})}>
                     <option value="" disabled>Select Mentor</option>
-                    {MENTORS.map((mentor, idx) => (
-                      <option key={idx} value={mentor}>{mentor}</option>
+                    {mentorsList.map((mentor, idx) => (
+                      <option key={idx} value={mentor.username}>{mentor.name}</option>
                     ))}
                   </select>
                 </div>

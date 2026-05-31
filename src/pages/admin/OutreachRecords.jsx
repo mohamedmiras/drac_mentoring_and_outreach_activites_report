@@ -11,18 +11,20 @@ import {
 import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getAchievementMarks } from '../../lib/scoring';
+import { useSettings } from '../../contexts/SettingsContext';
 
 function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
 const OutreachRecords = () => {
+  const { missionName, loadingSettings } = useSettings();
   const [activeTab, setActiveTab] = useState('status'); // 'status', 'records', 'reports'
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Advanced Global Filters
-  const [recordType, setRecordType] = useState('Both'); // 'Outreach', 'Mission 100', 'Both'
+  const [recordType, setRecordType] = useState('Both'); // 'Outreach', missionName, 'Both'
   const [searchTerm, setSearchTerm] = useState('');
   const [classFilter, setClassFilter] = useState('All');
   
@@ -194,7 +196,7 @@ const OutreachRecords = () => {
     let matchType = false;
     if (recordType === 'Both') matchType = true;
     else if (recordType === 'Outreach') matchType = isOut;
-    else if (recordType === 'Mission 100') matchType = isM100;
+    else if (recordType === 'Mission 100' || recordType === missionName) matchType = isM100;
     if (!matchType) return false;
 
     // Search
@@ -307,7 +309,7 @@ const OutreachRecords = () => {
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Record Type</label>
           <select value={recordType} onChange={e => setRecordType(e.target.value)} className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-blue/30 outline-none bg-slate-50 font-bold text-slate-700">
             <option value="Outreach">Outreach Activities</option>
-            <option value="Mission 100">Mission 100</option>
+            <option value={missionName}>{missionName}</option>
             <option value="Both">Both</option>
           </select>
         </div>
@@ -730,7 +732,7 @@ const OutreachRecords = () => {
                     <Trophy className="w-5 h-5 text-orange-600" /> 
                     ELITE TOP PERFORMERS
                   </h3>
-                  <p className="text-[8px] font-medium text-gray-500 mt-0.5">Based on net score (outreach & mission 100 only)</p>
+                  <p className="text-[8px] font-medium text-gray-500 mt-0.5">Based on net score (outreach & {missionName?.toLowerCase()} only)</p>
                 </div>
                 <span className="text-[9px] font-bold text-orange-700 uppercase tracking-widest bg-white/80 px-3 py-1 rounded-full border border-orange-200/50 shadow-sm">Top 5 Rankings</span>
               </div>
@@ -852,7 +854,7 @@ const OutreachRecords = () => {
                             {/* Achievement Type (Mobile Only - redundant on desktop) */}
                             <div className="flex items-center gap-2 lg:hidden">
                               <div className="w-5 h-5 rounded bg-gray-50 text-gray-400 flex items-center justify-center shrink-0 shadow-inner">
-                                {rec.isMission100 ? <img src="/mission100-logo.png" alt="Mission 100" className="w-3.5 h-3.5 object-contain" /> : <Globe className="w-3 h-3" />}
+                                {rec.isMission100 ? <img src="/mission100-logo.png" alt={missionName} className="w-3.5 h-3.5 object-contain" title={missionName} /> : <Globe className="w-3 h-3" />}
                               </div>
                               <p className="font-bold text-gray-800 text-[11px] truncate">{mainTitle}</p>
                             </div>
@@ -862,7 +864,7 @@ const OutreachRecords = () => {
                         {/* Title & Details (Desktop Only) */}
                         <div className="hidden lg:flex flex-1 min-w-0 border-l border-gray-100 pl-5 items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center shrink-0 shadow-inner group-hover:rotate-6 transition-transform">
-                            {rec.isMission100 ? <img src="/mission100-logo.png" alt="Mission 100" className="w-5 h-5 object-contain" /> : <Globe className="w-4.5 h-4.5" />}
+                            {rec.isMission100 ? <img src="/mission100-logo.png" alt={missionName} className="w-5 h-5 object-contain" title={missionName} /> : <Globe className="w-4.5 h-4.5" />}
                           </div>
                           <div className="min-w-0">
                             <p className="font-bold text-gray-800 text-sm truncate">{mainTitle}</p>

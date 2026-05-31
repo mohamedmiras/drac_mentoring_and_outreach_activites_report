@@ -5,6 +5,7 @@ import { db } from '../../lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import { BookOpen, Users, Award, TrendingUp, ChevronRight, Target } from 'lucide-react';
+import { useSettings } from '../../contexts/SettingsContext';
 
 const CLASSES = [
   { id: 'sec-final', name: 'Secondary Final Year', color: 'bg-blue-500' },
@@ -31,6 +32,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass, loading }) => (
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { missionName, missionTarget, loadingSettings } = useSettings();
   const [stats, setStats] = useState({ students: 0, achievements: 0, totalPoints: 0, mission100Count: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -71,12 +73,12 @@ const AdminDashboard = () => {
         <p className="text-gray-500 mt-1">Manage classes and monitor student performance.</p>
       </div>
 
-      {/* Mission 100 Dashboard Feature */}
+      {/* Mission Dashboard Feature */}
       <div className="bg-white rounded-2xl shadow-sm border border-orange-200 mb-8 relative overflow-hidden group">
         {/* Background Progress Fill */}
         <motion.div
           initial={{ width: 0 }}
-          animate={{ width: `${Math.min((stats.mission100Count / 100) * 100, 100)}%` }}
+          animate={{ width: `${Math.min((stats.mission100Count / (missionTarget || 100)) * 100, 100)}%` }}
           transition={{ duration: 1.5, ease: "easeOut" }}
           className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-orange-400/20 to-amber-300/20 z-0"
         />
@@ -86,16 +88,16 @@ const AdminDashboard = () => {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 p-6">
           <div className="flex-1">
             <h2 className="text-xl font-black text-orange-600 mb-1 flex items-center gap-2">
-              <Target className="w-6 h-6 text-orange-500" /> Mission 100 Progress
+              <Target className="w-6 h-6 text-orange-500" /> {loadingSettings ? 'Loading...' : `${missionName} Progress`}
             </h2>
-            <p className="text-sm text-gray-700 font-medium">Tracking verified achievements contributing to Mission 100 goals.</p>
+            <p className="text-sm text-gray-700 font-medium">Tracking verified achievements contributing to {missionName} goals.</p>
           </div>
           <div className="flex-none flex items-center">
             <div className="flex items-center gap-4">
               <span className="text-4xl font-black text-orange-600 tracking-tight">
-                {loading ? '-' : stats.mission100Count} <span className="text-xl text-orange-400/70 font-bold">/ 100</span>
+                {loading || loadingSettings ? '-' : stats.mission100Count} <span className="text-xl text-orange-400/70 font-bold">/ {missionTarget}</span>
               </span>
-              {!loading && stats.mission100Count >= 100 && (
+              {!loading && !loadingSettings && stats.mission100Count >= missionTarget && (
                 <motion.span 
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}

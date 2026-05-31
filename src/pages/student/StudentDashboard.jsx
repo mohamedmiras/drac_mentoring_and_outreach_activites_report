@@ -4,7 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { motion } from 'framer-motion';
-import { User, Award, Calendar, LogOut, Activity, Star, Trophy, Target, PieChart, Pencil, Download, Key, Globe, UserCircle, Sparkles, BookOpen } from 'lucide-react';
+import { Trophy, Star, TrendingUp, Calendar, ArrowRight, Target, Award, Search, LogOut, CheckCircle, Activity, LayoutDashboard, KeyRound, Menu, X, PlusCircle, User, LogOut as LogOutIcon, Key, Globe, PieChart, Pencil, Download, BookOpen, Sparkles } from 'lucide-react';
+import { useSettings } from '../../contexts/SettingsContext';
 import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import AddAchievementModal from '../admin/components/AddAchievementModal';
@@ -21,6 +22,7 @@ function cn(...inputs) {
 
 const StudentDashboard = () => {
   const { userData, logout } = useAuth();
+  const { missionName, missionTarget, loadingSettings } = useSettings();
   const navigate = useNavigate();
   
   const [student, setStudent] = useState(null);
@@ -35,15 +37,22 @@ const StudentDashboard = () => {
   const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
   const [editingAchievement, setEditingAchievement] = useState(null);
   const [viewingPosterAchievement, setViewingPosterAchievement] = useState(null);
-  const [recordFilter, setRecordFilter] = useState('Total Achievements');
+  const [recordFilter, setRecordFilter] = useState('All');
+
+  useEffect(() => {
+    if (recordFilter === 'Mission 100' && missionName !== 'Mission 100') {
+      setRecordFilter(missionName);
+    }
+  }, [missionName, recordFilter]);
 
   const filteredAchievements = React.useMemo(() => {
     return achievements.filter(ach => 
-      recordFilter === 'Total Achievements' || 
-      (recordFilter === 'Outreach Activities' && ach.isOutreach) || 
+      recordFilter === 'All' || 
+      (recordFilter === 'Outreach' && ach.isOutreach) || 
+      (recordFilter === missionName && ach.isMission100) ||
       (recordFilter === 'Mission 100' && ach.isMission100)
     );
-  }, [achievements, recordFilter]);
+  }, [achievements, recordFilter, missionName]);
 
   const chartData = React.useMemo(() => {
     const distribution = {};
@@ -56,13 +65,18 @@ const StudentDashboard = () => {
     return Object.keys(distribution).map(type => ({
        type,
        count: distribution[type],
-       percentage: Math.round((distribution[type] / filteredAchievements.length) * 100)
+       percentage: Math.round((distribution[type] / (filteredAchievements.length || 1)) * 100)
     })).sort((a,b) => b.count - a.count);
   }, [filteredAchievements]);
+
+  const mission100Count = React.useMemo(() => {
+    return achievements.filter(ach => ach.isMission100).length;
+  }, [achievements]);
 
   const outreachCount = React.useMemo(() => {
     return achievements.filter(ach => ach.isOutreach).length;
   }, [achievements]);
+
   const fetchStudentData = async (admissionNumber, silent = false) => {
     if (!silent) setLoading(true);
     else setAchLoading(true);
@@ -86,7 +100,6 @@ const StudentDashboard = () => {
         }));
         setAchievements(processedAchData);
 
-        // --- Auto Healing ---
         const currentAchievementTotal = Number(processedAchData.reduce((acc, curr) => acc + (curr.totalMarks || 0), 0).toFixed(2));
         const currentTotalStars = processedAchData.reduce((acc, curr) => acc + (Number(curr.stars) || 0), 0);
         const currentNetScore = Number(Math.max(0, currentAchievementTotal - (studentData.minusPoints || 0)).toFixed(2));
@@ -98,10 +111,8 @@ const StudentDashboard = () => {
             totalStars: currentTotalStars
           });
           setStudent(prev => ({...prev, netScore: currentNetScore, totalStars: currentTotalStars, plusPoints: currentAchievementTotal}));
-          studentData.netScore = currentNetScore;
         }
 
-        // --- Analytics Calculations ---
         let studentsList = cachedStudents;
         if (!studentsList) {
           const allStudentsSnap = await getDocs(collection(db, 'students'));
@@ -121,45 +132,16 @@ const StudentDashboard = () => {
           }
         });
 
-        // 1. Class Rank
         classMates.sort((a, b) => b.score - a.score);
         const myRank = classMates.findIndex(s => s.id === studentDoc.id) + 1;
         
-        // 2. Global Score Share (Campus Rating)
         let globalPercentile = 0;
         if (totalGlobalScore > 0 && (studentData.netScore || 0) > 0) {
           globalPercentile = Math.round(((studentData.netScore || 0) / totalGlobalScore) * 100);
         }
 
-        // 4. Total Performance (All-time Cumulative)
-        const monthlyStats = {};
-        const sortedAch = [...processedAchData].sort((a,b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt));
-        const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
-        let runningTotal = 0;
-        sortedAch.forEach(ach => {
-          const dateStr = ach.date || ach.createdAt;
-          if (!dateStr) return;
-          const d = new Date(dateStr);
-          const mKey = `${monthsShort[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`;
-          
-          runningTotal += (Number(ach.totalMarks) || 0);
-          monthlyStats[mKey] = runningTotal; // Overwrites with the latest total for that month
-        });
+        setAnalytics({ classRank: myRank, classTotal: classMates.length, globalPercentile });
 
-        const performanceTrend = Object.keys(monthlyStats).map(key => ({
-          label: key,
-          score: monthlyStats[key]
-        }));
-
-        if (performanceTrend.length === 1) {
-          performanceTrend.unshift({ label: 'Start', score: 0 });
-        }
-
-        setAnalytics({ classRank: myRank, classTotal: classMates.length, globalPercentile, performanceTrend });
-
-      } else {
-        // Handle error: Student not found
       }
     } catch (e) {
       console.error(e);
@@ -183,19 +165,14 @@ const StudentDashboard = () => {
   const handleSaveAchievement = async (payload) => {
     try {
       if (editingAchievement) {
-        // --- EDIT MODE ---
         const achRef = doc(db, 'achievements', editingAchievement.id);
         await updateDoc(achRef, payload);
-
-        // Adjust student scores based on diff
         const oldMarks = Number(getAchievementMarks(editingAchievement)) || 0;
         const newMarks = Number(payload.totalMarks) || 0;
         const markDiff = newMarks - oldMarks;
-        
         const oldStars = Number(editingAchievement.stars) || 0;
         const newStars = Number(payload.stars) || 0;
         const starDiff = newStars - oldStars;
-
         if (markDiff !== 0 || starDiff !== 0) {
           await updateDoc(doc(db, 'students', student.id), {
             plusPoints: increment(markDiff),
@@ -204,10 +181,9 @@ const StudentDashboard = () => {
           });
         }
       } 
-      
       setIsAchievementModalOpen(false);
       setEditingAchievement(null);
-      fetchStudentData(userData.admissionNumber, true); // Refresh silenty
+      fetchStudentData(userData.admissionNumber, true);
     } catch (e) {
       console.error(e);
       alert(e.message || 'Failed to update achievement');
@@ -233,7 +209,6 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      {/* Header */}
       <header className="bg-brand-green text-white shadow-md">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
@@ -263,7 +238,6 @@ const StudentDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-1 lg:grid-cols-3 gap-8"
         >
-          {/* Profile Section */}
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden text-center relative pt-12 pb-8 px-6">
               <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-brand-green to-brand-darkGreen" />
@@ -291,173 +265,71 @@ const StudentDashboard = () => {
               </div>
             </div>
 
-            {/* Performance Metrics */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="bg-white rounded-[24px] shadow-xl shadow-blue-500/5 border border-gray-100 p-6 lg:p-8 mt-6 relative overflow-hidden group"
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-3xl p-6 relative overflow-hidden shadow-sm border border-gray-100 group hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
-              <h3 className="text-[17px] font-black text-gray-900 mb-6 flex items-center gap-3 tracking-tight relative z-10">
-                <div className="w-9 h-9 rounded-xl bg-brand-blue/10 flex items-center justify-center shadow-inner">
-                  <Activity className="w-4.5 h-4.5 text-brand-blue" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-orange-100/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="flex justify-between items-start mb-8 relative z-10">
+                <div>
+                  <h3 className="text-gray-500 font-medium mb-1">{loadingSettings ? 'Loading...' : missionName}</h3>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-black text-gray-900 tracking-tight">{mission100Count}</span>
+                    <span className="text-lg font-bold text-gray-400">/ {missionTarget}</span>
+                  </div>
                 </div>
-                Performance Metrics
-              </h3>
-              
-              <div className="flex flex-col gap-3 mb-6 relative z-10">
-                {/* Net Score */}
-                <motion.div 
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-blue-100/60 rounded-2xl p-3.5 border border-blue-200/50 shadow-sm flex justify-between items-center group hover:bg-white hover:border-brand-blue/30 transition-all relative z-10"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold text-blue-700/70 mb-0.5">Net Score</p>
-                    <div className="flex items-center gap-1">
-                      <span className="text-base font-bold text-blue-900 tracking-tight">{student.netScore || 0}</span>
-                      <span className="text-[9px] font-bold text-blue-500 uppercase">Pts</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white shadow-sm border border-blue-100 transition-all">
-                    <Activity className="w-4.5 h-4.5 text-brand-blue" />
-                  </div>
-                </motion.div>
-                
-                {/* Total Stars */}
-                <motion.div 
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-amber-100/60 rounded-2xl p-3.5 border border-amber-200/50 shadow-sm flex justify-between items-center group hover:bg-white hover:border-amber-200 transition-all relative z-10"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold text-amber-700/70 mb-0.5">Total Stars</p>
-                    <div className="flex items-center gap-1">
-                      <span className="text-base font-bold text-amber-900 tracking-tight">{student.totalStars || 0}</span>
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white shadow-sm border border-amber-100 transition-all">
-                    <Star className="w-4.5 h-4.5 text-amber-500" />
-                  </div>
-                </motion.div>
-
-                {/* Outreach Activities */}
-                <motion.div 
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.35 }}
-                  className="bg-emerald-100/60 rounded-2xl p-3.5 border border-emerald-200/50 shadow-sm flex justify-between items-center group hover:bg-white hover:border-emerald-200 transition-all relative z-10"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold text-emerald-700/70 mb-0.5 uppercase">Outreach Activities</p>
-                    <div className="flex items-center gap-1">
-                      <span className="text-base font-bold text-emerald-900 tracking-tight">{outreachCount}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white shadow-sm border border-emerald-100 transition-all">
-                    <Globe className="w-4.5 h-4.5 text-emerald-500" />
-                  </div>
-                </motion.div>
+                <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl group-hover:scale-110 group-hover:rotate-6 transition-transform shadow-inner">
+                  <Target className="w-8 h-8 text-orange-500" />
+                </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="bg-gray-50 rounded-[16px] p-4 border border-gray-100 shadow-sm hover:bg-white transition-all duration-300 group/stat"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                     <div className="w-6 h-6 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-brand-blue">
-                       <Trophy className="w-3 h-3" />
-                     </div>
-                     <p className="text-[11px] font-bold text-gray-500">Class Rank</p>
-                  </div>
-                  <p className="text-base font-bold text-gray-900 tracking-tight ml-1">{analytics.classRank} <span className="text-[10px] font-medium text-gray-400">/ {analytics.classTotal}</span></p>
-                </motion.div>
-
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="bg-gray-50 rounded-[16px] p-4 border border-gray-100 shadow-sm hover:bg-white transition-all duration-300 group/stat"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                     <div className="w-6 h-6 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-brand-blue">
-                       <PieChart className="w-3 h-3" />
-                     </div>
-                     <p className="text-[11px] font-bold text-gray-500">Campus Rating</p>
-                  </div>
-                  <p className="text-base font-bold text-gray-900 tracking-tight ml-1">{analytics.globalPercentile}%</p>
-                </motion.div>
+              
+              <div className="space-y-3 relative z-10">
+                <div className="flex justify-between text-xs font-bold text-gray-600 uppercase tracking-widest">
+                  <span>Progress</span>
+                  <span className="text-orange-500">{Math.min(Math.round((mission100Count / (missionTarget || 100)) * 100), 100)}%</span>
+                </div>
+                <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner relative">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min((mission100Count / (missionTarget || 100)) * 100, 100)}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-orange-400 to-orange-500 rounded-full shadow-md"
+                  ></motion.div>
+                </div>
               </div>
             </motion.div>
           </div>
 
           <div className="lg:col-span-2 flex flex-col gap-6">
-            
-            {chartData.length > 0 && (
-              <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 lg:p-8">
-                <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center uppercase tracking-wide">
-                  <PieChart className="w-5 h-5 mr-2 text-brand-blue" /> Work Distribution
-                </h3>
-                <div className="space-y-4">
-                  {chartData.map((data, i) => (
-                    <div key={i} className="flex items-center text-sm">
-                      <div className="w-1/3 sm:w-1/4 font-bold text-gray-700 truncate pr-4">{data.type}</div>
-                      <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden shadow-inner">
-                        <motion.div 
-                          initial={{ width: 0 }}
-                          animate={{ width: `${data.percentage}%` }}
-                          transition={{ duration: 1, delay: i * 0.1, ease: 'easeOut' }}
-                          className="bg-gradient-to-r from-brand-blue to-brand-green h-full rounded-full"
-                        />
-                      </div>
-                      <div className="w-16 text-right font-black text-gray-400">
-                        {data.count} <span className="text-xs font-medium opacity-50">QTY</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             <div className="bg-gradient-to-br from-amber-50 via-yellow-50/80 to-orange-50/60 rounded-[24px] shadow-lg border border-amber-100/50 p-6 lg:p-8 flex-1 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 relative z-10 gap-4">
                 <div className="flex gap-2 p-1 bg-white/20 backdrop-blur-md rounded-xl border border-amber-200/30">
                   <button 
                     onClick={() => setActiveTab('achievements')}
-                    className={clsx(
-                      "px-4 py-2 text-sm font-bold rounded-lg transition-all",
-                      activeTab === 'achievements' ? "bg-white text-amber-900 shadow-sm" : "text-amber-900 hover:bg-white/50"
-                    )}
+                    className={clsx("px-4 py-2 text-sm font-bold rounded-lg transition-all", activeTab === 'achievements' ? "bg-white text-amber-900 shadow-sm" : "text-amber-900 hover:bg-white/50")}
                   >
                     My Achievements
                   </button>
                   <button 
                     onClick={() => setActiveTab('insights')}
-                    className={clsx(
-                      "px-4 py-2 text-sm font-bold rounded-lg transition-all",
-                      activeTab === 'insights' ? "bg-white text-amber-900 shadow-sm" : "text-amber-900 hover:bg-white/50"
-                    )}
+                    className={clsx("px-4 py-2 text-sm font-bold rounded-lg transition-all", activeTab === 'insights' ? "bg-white text-amber-900 shadow-sm" : "text-amber-900 hover:bg-white/50")}
                   >
                     Mentoring Insights
                   </button>
                 </div>
                 
                 {activeTab === 'achievements' && (
-                  <select 
-                    value={recordFilter} 
+                  <select
+                    value={recordFilter}
                     onChange={(e) => setRecordFilter(e.target.value)}
-                    className="px-4 py-2 bg-white/80 backdrop-blur-sm border border-amber-200/50 rounded-xl text-sm font-bold text-amber-900 outline-none focus:ring-2 focus:ring-amber-400/50 shadow-sm"
+                    className="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue text-sm font-semibold text-gray-700 shadow-sm"
                   >
-                    <option value="Total Achievements">Total Achievements</option>
-                    <option value="Outreach Activities">Outreach Activities</option>
-                    <option value="Mission 100">Mission 100</option>
+                    <option value="All">All Achievements</option>
+                    <option value="Outreach">Outreach Records</option>
+                    <option value={missionName}>{missionName}</option>
                   </select>
                 )}
               </div>
@@ -471,7 +343,7 @@ const StudentDashboard = () => {
               ) : filteredAchievements.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-amber-700 bg-amber-100/40 rounded-[16px] border-2 border-dashed border-amber-200/60 relative z-10">
                   <Award className="w-16 h-16 mb-4 opacity-50 text-amber-400" />
-                  <p className="text-[15px] font-bold">No achievements found for the selected filter.</p>
+                  <p className="text-[15px] font-bold">No achievements found.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 relative z-10">
@@ -492,7 +364,7 @@ const StudentDashboard = () => {
                           <div className="flex justify-between items-start mb-2 pr-16">
                             <h4 className="text-lg font-bold text-gray-900 leading-tight flex items-center gap-2">
                               {ach.title}
-                              {ach.isMission100 && <img src="/mission100-logo.png" alt="Mission 100" className="w-5 h-5 object-contain" title="Mission 100" />}
+                              {ach.isMission100 && <img src="/mission100-logo.png" alt={missionName} className="w-5 h-5 object-contain" title={missionName} />}
                               {ach.isOutreach && <Globe className="w-4 h-4 text-brand-blue" title="Outreach Activity" />}
                             </h4>
                              <div className="absolute top-4 right-4">

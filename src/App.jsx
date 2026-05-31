@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Landing from './pages/Landing';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminSettings from './pages/admin/AdminSettings';
 import ClassView from './pages/admin/ClassView';
 import StudentAdminProfile from './pages/admin/StudentAdminProfile';
 import StudentPortal from './pages/student/StudentLogin';
@@ -18,6 +19,7 @@ import AdminMentors from './pages/admin/AdminMentors';
 import MentorLogin from './pages/mentor/MentorLogin';
 import MentorDashboard from './pages/mentor/MentorDashboard';
 import MentorStudentProfile from './pages/mentor/MentorStudentProfile';
+import { SettingsProvider } from './contexts/SettingsContext';
 
 const ProtectedAdminRoute = ({ children }) => {
   const { currentUser, userData, loading } = useAuth();
@@ -61,7 +63,8 @@ const ProtectedMentorRoute = ({ children }) => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <SettingsProvider>
+        <Router>
         <Routes>
           <Route path="/" element={<Landing />} />
 
@@ -70,6 +73,11 @@ function App() {
           <Route path="/admin" element={
             <ProtectedAdminRoute>
               <AdminDashboard />
+            </ProtectedAdminRoute>
+          } />
+          <Route path="/admin/settings" element={
+            <ProtectedAdminRoute>
+              <AdminSettings />
             </ProtectedAdminRoute>
           } />
           <Route path="/admin/class/:className" element={
@@ -130,6 +138,7 @@ function App() {
           } />
         </Routes>
       </Router>
+      </SettingsProvider>
     </AuthProvider>
   );
 }
