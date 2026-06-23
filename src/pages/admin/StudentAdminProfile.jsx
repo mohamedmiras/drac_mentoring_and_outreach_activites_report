@@ -5,7 +5,7 @@ import { db } from '../../lib/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, addDoc, deleteDoc, increment } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAchievementMarks, calculateEntryScore } from '../../lib/scoring';
-import { User, Award, Calendar, ChevronLeft, Trash2, Camera, Star, Trophy, PieChart, Languages, Activity, Target, Globe, LogOut, CheckCircle, Pencil, Download, Key, Shield, UserCircle, Sparkles, BookOpen, ArrowLeft } from 'lucide-react';
+import { User, Award, Calendar, ChevronLeft, Trash2, Camera, Star, Trophy, PieChart, Languages, Activity, Target, Globe, LogOut, CheckCircle, Pencil, Download, Key, Shield, UserCircle, Sparkles, BookOpen, ArrowLeft, Plus } from 'lucide-react';
 import { processAndUploadImage } from '../../lib/imageOptimization';
 import { useSettings } from '../../contexts/SettingsContext';
 import AddAchievementModal from './components/AddAchievementModal';
