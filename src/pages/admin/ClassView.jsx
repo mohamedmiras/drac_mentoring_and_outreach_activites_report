@@ -221,8 +221,8 @@ const ClassView = () => {
   };
 
   const filteredStudents = students.filter(s => 
-    s.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.admissionNumber.includes(searchTerm)
+    (s.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (s.admissionNumber || '').toString().toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

@@ -468,13 +468,13 @@ const StudentAdminProfile = () => {
               <div className="flex items-center gap-5">
                 <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center text-brand-blue font-black text-2xl border border-gray-100 overflow-hidden shrink-0">
                   {student.photoURL ? (
-                    <img src={student.photoURL} alt={student.fullName} className="w-full h-full object-cover" />
+                    <img src={student.photoURL} alt={student.fullName || 'Student'} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="opacity-40">{student.fullName.charAt(0).toUpperCase()}</span>
+                    <span className="opacity-40">{(student.fullName || 'U').charAt(0).toUpperCase()}</span>
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-2xl font-black text-gray-900 leading-tight truncate">{student.fullName}</h2>
+                  <h2 className="text-2xl font-black text-gray-900 leading-tight truncate">{student.fullName || 'Unknown Student'}</h2>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-[10px] font-black text-brand-blue uppercase tracking-widest bg-brand-blue/5 px-2 py-0.5 rounded-md border border-brand-blue/10">
                       Class: {student.className}
